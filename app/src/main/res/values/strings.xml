@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Simple File Browser</string>
+    <string name="author">Author: Touch Force (by Dmitriy Bukharev)</string>
+    <string name="no_files_string">No files in this directory</string>
+    <string name="file_type_sting">File</string>
+    <string name="folder_type_sting">Folder</string>
+    <string name="archive_name">Archive name</string>
+    <string name="moving_file">Moving file</string>
+    <string name="moving_folder">Moving folder</string>
+    <string name="copying_file">Copying file</string>
+    <string name="copying_folder">Copying folder</string>
+    <string name="moving_in_progress">Moving in progress</string>
+    <string name="copying_in_progress">Copying in progress</string>
+
+    <string name="copy_file_string">Copy</string>
+    <string name="move_file_string">Move</string>
+    <string name="delete_file_string">Delete</string>
+    <string name="rename_file_string">Rename</string>
+    <string name="info_file_string">Information</string>
+    <string name="compress_file_string">Compress</string>
+
+    <string name="information_title">Information</string>
+    <string name="information_file_name">File name: </string>
+    <string name="information_file_path">File path: </string>
+    <string name="information_file_size">File size: </string>
+    <string name="information_file_checksum">Checksum: </string>
+    <string name="information_file_last_modified">Last modified: </string>
+    <string name="information_file_created">Created: </string>
+
+    <string name="DIALOG_OK">OK</string>
+    <string name="DIALOG_CANCEL">Cancel</string>
+    <string name="DIALOG_NO">No</string>
+
+    <string name="rewrite_file">Rewrite %s?</string>
+    <string name="rewrite_file_title">Rewriting file</string>
+    <string name="merge_folders_title">Merge folders</string>
+    <string name="merge_folders">Merge %1$s and %2$s?</string>
+    <string name="rewrite_file_checkbox">Apply to all selected files</string>
+
+    <string-array name="spinner_options">
+        <item id="internal_option">Internal storage</item>
+        <item id="sd_card_option">SD card</item>
+    </string-array>
+
+    <!--Warnings-->
+    <string name="archive_exists">This archive already exists!</string>
+
+</resources>

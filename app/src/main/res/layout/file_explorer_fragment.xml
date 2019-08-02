@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <android.support.design.widget.AppBarLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+            <android.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary"
+                android:minHeight="?attr/actionBarSize"
+                android:theme="@style/ActionBarTheme">
+                <Spinner
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/path_selection_spinner">
+
+                </Spinner>
+                <!--android:theme="?attr/actionBarTheme" -->
+                <TextView
+                    android:id="@+id/cur_path_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Current Path"
+                    android:textColor="@android:color/background_light"
+                    android:ellipsize="start"
+                    android:singleLine="true" />
+            </android.widget.Toolbar>
+            <!--<include layout="@layout/toolbar"/>-->
+        </android.support.design.widget.AppBarLayout>
+        <include layout="@layout/recycler_view"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/no_files_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        tools:text="No files"
+        android:text="@string/no_files_string"
+        android:visibility="invisible"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floating_action_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:layout_margin="10dp"
+        android:src="@drawable/ic_add_file_icon"
+        android:scaleType="fitXY"
+        android:padding="0dp"
+        android:layout_gravity="end|bottom" />
+
+</FrameLayout>

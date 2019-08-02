@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/path_selection_spinner">
+
+    </Spinner>
+    <!--android:theme="?attr/actionBarTheme" -->
+    <TextView
+        android:id="@+id/cur_path_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Current Path"
+        android:textColor="@android:color/background_light"
+        android:ellipsize="start"
+        android:maxLength="6"
+        android:singleLine="true" />
+</LinearLayout>

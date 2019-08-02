@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple File Browser</string>
+    <string name="author">Автор: Touch Force (Дмитрий Бухарев)</string>
+    <string name="no_files_string">Пустая папка</string>
+    <string name="file_type_sting">Файл</string>
+    <string name="folder_type_sting">Папка</string>
+    <string name="archive_name">Название архива</string>
+    <string name="moving_file">Перемещение файла</string>
+    <string name="moving_folder">Перемещение папки</string>
+    <string name="copying_file">Копирование файла</string>
+    <string name="copying_folder">Копирование папки</string>
+    <string name="moving_in_progress">Перемещение продолжается</string>
+    <string name="copying_in_progress">Копирование продолжается</string>
+
+    <string name="copy_file_string">Копировать</string>
+    <string name="move_file_string">Переместить</string>
+    <string name="delete_file_string">Удалить</string>
+    <string name="rename_file_string">Переименовать</string>
+    <string name="info_file_string">Информация</string>
+    <string name="compress_file_string">Сжать в zip</string>
+
+    <string name="information_title">Информация</string>
+    <string name="information_file_name">Имя файла: </string>
+    <string name="information_file_path">Путь к файлу: </string>
+    <string name="information_file_size">Размер файла: </string>
+    <string name="information_file_checksum">Контрольная сумма: </string>
+    <string name="information_file_last_modified">Последнее изменение: </string>
+    <string name="information_file_created">Создан: </string>
+
+    <string name="DIALOG_OK">ОК</string>
+    <string name="DIALOG_CANCEL">Отмена</string>
+    <string name="DIALOG_NO">Нет</string>
+
+    <string name="rewrite_file">Перезаписать %s?</string>
+    <string name="rewrite_file_title">Перезапись файла</string>
+    <string name="merge_folders_title">Объединение папок</string>
+    <string name="merge_folders">Объединить %1$s и %2$s?</string>
+    <string name="rewrite_file_checkbox">Применить ко всем выделенным файлам</string>
+
+    <string-array name="spinner_options">
+        <item id="internal_option">Внутренняя память</item>
+        <item id="sd_card_option">SD карта</item>
+    </string-array>
+    <!--Warnings-->
+    <string name="archive_exists">Архив с этим именем уже существует!</string>
+</resources>

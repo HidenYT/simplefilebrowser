@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".activities.FileExplorerActivity">
+
+    <item android:icon="@drawable/ic_copy_button"
+        android:id="@+id/copy_button_action_menu"
+        android:title="Copy files"
+        app:showAsAction="always"/>
+
+    <item android:icon="@drawable/ic_cut_button"
+        android:id="@+id/move_button_action_menu"
+        android:title="Cut files"
+        app:showAsAction="always"/>
+    <item android:icon="@drawable/ic_more_button_dark"
+        android:iconTint="@color/colorPrimary"
+        android:title="more"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item android:icon="@drawable/ic_compress_button"
+                android:id="@+id/compress_button_action_menu"
+                android:title="Compress files"
+                app:showAsAction="always"/>
+
+            <item android:icon="@drawable/ic_delete_button"
+                android:id="@+id/delete_button_action_menu"
+                android:title="Delete files"
+                app:showAsAction="always"/>
+        </menu>
+    </item>
+</menu>
