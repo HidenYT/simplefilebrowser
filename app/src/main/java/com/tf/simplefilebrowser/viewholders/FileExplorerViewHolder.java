@@ -24,7 +24,7 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
     private ImageView mFileIcon;
     private File mFile;
     private ConstraintLayout mFileBackground;
-    FileExplorerFragment mFragment;
+    private FileExplorerFragment mFragment;
     public FileExplorerViewHolder(LayoutInflater inflater, ViewGroup parent, FileExplorerFragment fragment) {
         super(inflater.inflate(R.layout.list_item_files, parent, false));
         mFileTitle = (TextView) itemView.findViewById(R.id.file_title_view);

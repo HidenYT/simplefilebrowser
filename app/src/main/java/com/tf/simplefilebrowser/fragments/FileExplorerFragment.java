@@ -137,9 +137,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         getActivity().getActionBar().setDisplayShowTitleEnabled(false);
         setHasOptionsMenu(true);
         updateUI();
-        mRecyclerView.setItemViewCacheSize(20);
-        mRecyclerView.setDrawingCacheEnabled(true);
-        mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         return view;
     }
     @Override
@@ -242,6 +239,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
                     files = FileFoldersLab.sortFilesByDate(f);
                 }
+                mRecyclerView.setItemViewCacheSize(files.size());
+                mRecyclerView.setDrawingCacheEnabled(true);
+                mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
                 if(files.size() == 0){
                     mNoFilesTextView.setVisibility(View.VISIBLE);
                 }else{
