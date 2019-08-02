@@ -60,11 +60,8 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     private TextView mCurrentPathTextView;
     private TextView mNoFilesTextView;
     public boolean mFilesActionActive;
-    private String initFilePath;
-    private Toolbar mToolbar;
     public ActionMode mActionMode;
     public Spinner mSpinner;
-    private FloatingActionButton mFloatingActionButton;
     private static final int REQUEST_NEW_FILE_TYPE = 0;
     private static final String DIALOG_NEW_FILE_TYPE = "NewFileType";
     public static final String DIALOG_FILE_ACTION = "FileAction";
@@ -91,7 +88,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     private final String SAVED_INSTANCE_CURRENT_PATH = "CurrentPath";
     ArrayAdapter<CharSequence> mSpinnerAdapter;
 
-//    private LinkedList<View> mAllRecyclerViews = new LinkedList<>();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
@@ -116,7 +112,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         mRecyclerView.setAdapter(mAdapter);
         mCurrentPathTextView = (TextView) view.findViewById(R.id.cur_path_text_view);
         mNoFilesTextView = (TextView) view.findViewById(R.id.no_files_text_view);
-        mFloatingActionButton = (FloatingActionButton) view.findViewById(R.id.floating_action_button);
+        FloatingActionButton mFloatingActionButton = (FloatingActionButton) view.findViewById(R.id.floating_action_button);
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -132,7 +128,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         mSpinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         mSpinner.setOnItemSelectedListener(this);
         mSpinner.setAdapter(mSpinnerAdapter);
-        mToolbar = view.findViewById(R.id.toolbar);
+        Toolbar mToolbar = view.findViewById(R.id.toolbar);
         getActivity().setActionBar(mToolbar);
         getActivity().getActionBar().setDisplayShowTitleEnabled(false);
         setHasOptionsMenu(true);
@@ -292,9 +288,8 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                         data.getStringExtra(AlertDialogHelper.LongTouchMenu.ARG_FILE_NAME)));
             }
             if(data.getSerializableExtra(AlertDialogHelper.LongTouchMenu.RESULT_ACTION) == FileActions.COMPRESS){
-                initFilePath = data.getStringExtra(AlertDialogHelper.LongTouchMenu.ARG_FILE_NAME);
                 LinkedList<String> l = new LinkedList<>();
-                l.add(initFilePath);
+                l.add(data.getStringExtra(AlertDialogHelper.LongTouchMenu.ARG_FILE_NAME));
                 compressSelectedFiles(l);
             }
         }

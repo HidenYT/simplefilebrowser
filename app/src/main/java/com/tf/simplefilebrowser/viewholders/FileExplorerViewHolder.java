@@ -123,7 +123,7 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         FragmentManager manager = mFragment.getFragmentManager();
         AlertDialogHelper fragment = AlertDialogHelper.LongTouchMenu.newInstance(mFile.getAbsolutePath());
         fragment.setTargetFragment(mFragment, AlertDialogHelper.LongTouchMenu.REQUEST_FILE_ACTION);
-        fragment.show(manager, mFragment.DIALOG_FILE_ACTION);
+        fragment.show(manager, FileExplorerFragment.DIALOG_FILE_ACTION);
         if(mFragment.mActionMode != null){
             mFragment.mActionMode.finish();
             mFragment.mActionMode = null;
