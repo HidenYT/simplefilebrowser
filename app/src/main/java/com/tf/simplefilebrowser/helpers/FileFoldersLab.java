@@ -71,12 +71,19 @@ public class FileFoldersLab {
     }
     public FileFoldersLab(Activity context) {
         mCurPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        String sd = context.getExternalFilesDirs("")[1].getAbsolutePath();
+        String sd = "";
+        if(context.getExternalFilesDirs("").length > 1)
+            sd = context.getExternalFilesDirs("")[1].getAbsolutePath();
+        for(int i = 0; i < context.getExternalFilesDirs("").length; i++ ){
+            Log.d(TAG, "FileFoldersLab: " + context.getExternalFilesDirs("")[i].getAbsolutePath());
+        }
         mContext = context;
 
         mActivity = (Activity) mContext;
 
-        setSDCardPath(sd.substring(0,sd.indexOf("/Android/")));
+        if(sd != ""){
+            setSDCardPath(sd.substring(0,sd.indexOf("/Android/")));
+        }
         Log.d(TAG, "FileFoldersLab: " + getSDCardPath());
     }
 

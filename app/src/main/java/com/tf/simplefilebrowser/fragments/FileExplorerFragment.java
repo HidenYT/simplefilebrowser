@@ -132,6 +132,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         getActivity().setActionBar(mToolbar);
         getActivity().getActionBar().setDisplayShowTitleEnabled(false);
         setHasOptionsMenu(true);
+        mRecyclerView.setDrawingCacheEnabled(true);
+        mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        mRecyclerView.setHasFixedSize(true);
         updateUI();
         return view;
     }
@@ -228,35 +231,37 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                List files = new LinkedList();
-                if(sortMode == SortModes.ByName){
-                    files = FileFoldersLab.get(getActivity()).loadFilesFromPath();
-                }else if(sortMode == SortModes.ByDate){
-                    List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
-                    files = FileFoldersLab.sortFilesByDate(f);
-                }
-                mRecyclerView.setItemViewCacheSize(files.size());
-                mRecyclerView.setDrawingCacheEnabled(true);
-                mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
-                if(files.size() == 0){
-                    mNoFilesTextView.setVisibility(View.VISIBLE);
-                }else{
-                    mNoFilesTextView.setVisibility(View.GONE);
-                }
-                String curPath = FileFoldersLab.get(getActivity()).getCurPath();
-                mCurrentPathTextView.setText(curPath);
-                if (mAdapter == null) {
-                    mAdapter = new FileExplorerAdapter(mFileExplorerFragment, files);
-                    mRecyclerView.setAdapter(mAdapter);
-                } else {
-                    mAdapter.setFiles(files);
-                    mAdapter.notifyDataSetChanged();
-                }
-                if(FileFoldersLab.get(getActivity()).getCurPath().startsWith(
-                        FileFoldersLab.get(getActivity()).getSDCardPath()
-                )){
-                    mSpinner.setSelection(1);
-                    curStorage = 1;
+                try{
+                    List files = new LinkedList();
+                    if(sortMode == SortModes.ByName){
+                        files = FileFoldersLab.get(getActivity()).loadFilesFromPath();
+                    }else if(sortMode == SortModes.ByDate){
+                        List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
+                        files = FileFoldersLab.sortFilesByDate(f);
+                    }
+                    mRecyclerView.setItemViewCacheSize(20);
+                    if(files.size() == 0){
+                        mNoFilesTextView.setVisibility(View.VISIBLE);
+                    }else{
+                        mNoFilesTextView.setVisibility(View.GONE);
+                    }
+                    String curPath = FileFoldersLab.get(getActivity()).getCurPath();
+                    mCurrentPathTextView.setText(curPath);
+                    if (mAdapter == null) {
+                        mAdapter = new FileExplorerAdapter(mFileExplorerFragment, files);
+                        mRecyclerView.setAdapter(mAdapter);
+                    } else {
+                        mAdapter.setFiles(files);
+                        mAdapter.notifyDataSetChanged();
+                    }
+                    if(FileFoldersLab.get(getActivity()).getCurPath().startsWith(
+                            FileFoldersLab.get(getActivity()).getSDCardPath()
+                    )){
+                        mSpinner.setSelection(1);
+                        curStorage = 1;
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
         });
