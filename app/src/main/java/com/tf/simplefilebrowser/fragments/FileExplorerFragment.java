@@ -132,6 +132,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         getActivity().setActionBar(mToolbar);
         getActivity().getActionBar().setDisplayShowTitleEnabled(false);
         setHasOptionsMenu(true);
+        mRecyclerView.setItemViewCacheSize(20);
         mRecyclerView.setDrawingCacheEnabled(true);
         mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         mRecyclerView.setHasFixedSize(true);
@@ -239,7 +240,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                         List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
                         files = FileFoldersLab.sortFilesByDate(f);
                     }
-                    mRecyclerView.setItemViewCacheSize(20);
                     if(files.size() == 0){
                         mNoFilesTextView.setVisibility(View.VISIBLE);
                     }else{
@@ -263,6 +263,14 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+            }
+        });
+    }
+    public void updateUInoDataChanged(){
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mAdapter.notifyDataSetChanged();
             }
         });
     }

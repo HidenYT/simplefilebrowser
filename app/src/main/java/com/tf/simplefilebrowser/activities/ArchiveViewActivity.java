@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toolbar;
 
 import com.tf.simplefilebrowser.adapters.ArchiveExtractPathSelectionAdapter;
+import com.tf.simplefilebrowser.adapters.ArchiveViewAdapter;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.R;
 import com.tf.simplefilebrowser.helpers.ZipArchiveHelper;
@@ -39,20 +40,20 @@ public class ArchiveViewActivity extends Activity {
     private static final String EXTRA_ARCHIVE = "com.tf.simplefilebrowser.archive";
     public RecyclerView mRecyclerView;
     private Activity mContext;
-    private File archive;
+    public File archive;
     private ArchiveViewAdapter mAdapter;
-    ZipFileSelection selection;
-    private ActionMode mActionMode;
+    public ZipFileSelection selection;
+    public ActionMode mActionMode;
     private final String TAG = "TAG";
     private Toolbar mToolbar;
-    private LinkedList<ZipEntry> mEntries = new LinkedList<>();
+    public LinkedList<ZipEntry> mEntries = new LinkedList<>();
     public static Intent newIntent(Context packageContext, File archive) {
         Intent intent = new Intent(packageContext, ArchiveViewActivity.class);
         intent.putExtra(EXTRA_ARCHIVE, archive);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         return intent;
     }
-    private String CUR_ZIP_VIEW_PATH="";
+    public String CUR_ZIP_VIEW_PATH="";
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -71,12 +72,10 @@ public class ArchiveViewActivity extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        for(ZipEntry z : mEntries){
-            Log.d(TAG, "onCreate: " + z.getName());
-        }
+
         updateUI();
     }
-    public class ArchiveViewViewHolder extends RecyclerView.ViewHolder{
+    /*public class ArchiveViewViewHolder extends RecyclerView.ViewHolder{
         TextView mFileTitle;
         ImageView mFileIcon;
         View mItemView;
@@ -88,7 +87,7 @@ public class ArchiveViewActivity extends Activity {
             mFileBG = itemView.findViewById(R.id.file_background_view);
             mItemView = itemView;
         }
-        void bind(final ZipEntry entry){
+        public void bind(final ZipEntry entry){
             if(selection.fileIsSelected(entry.getName())){
                 mFileBG.setBackgroundResource(R.drawable.ripple_green);
             }else{
@@ -195,24 +194,16 @@ public class ArchiveViewActivity extends Activity {
         public void setFiles(LinkedList<ZipEntry> files){
             mFiles = files;
         }
-    }
-    private void updateUI() {
-        Log.d(TAG, "updateUI: -------------------------------------");
-        for(ZipEntry z : getEntriesCurPath()){
-            Log.d(TAG, "updateUI: " + z.getName());
-        }
+    }*/
+    public void updateUI() {
         LinkedList<ZipEntry> f = FileFoldersLab.sortZipEntries(getEntriesCurPath());
         if(mAdapter == null){
-            mAdapter = new ArchiveViewAdapter(getEntriesCurPath());
+            mAdapter = new ArchiveViewAdapter(getEntriesCurPath(), this);
             mRecyclerView.setAdapter(mAdapter);
         }else{
             mAdapter.setFiles(f);
             mAdapter.notifyDataSetChanged();
         }
-    }
-    @Override
-    public void onBackPressed(){
-
     }
 
     @Override
@@ -233,7 +224,7 @@ public class ArchiveViewActivity extends Activity {
         return super.dispatchKeyEvent(event);
     }
 
-    private class ExtractMenu implements ActionMode.Callback {
+    public class ExtractMenu implements ActionMode.Callback {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -350,6 +341,19 @@ public class ArchiveViewActivity extends Activity {
                     }).start();
                 }
             });
+            builder.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                    if(keyEvent.getAction() == KeyEvent.ACTION_UP && keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK){
+                        pathSelectionCurPath = pathSelectionCurPath.substring(0, pathSelectionCurPath.length()-1);
+                        pathSelectionCurPath = pathSelectionCurPath.substring(0, pathSelectionCurPath.lastIndexOf("/")+1);
+                        mAdapter.setFiles(FileFoldersLab.get(mContext)
+                                .loadFilesFromPath(pathSelectionCurPath));
+                        mAdapter.notifyDataSetChanged();
+                    }
+                    return true;
+                }
+            });
             recyclerView.setAdapter(mAdapter);
             builder.setView(v);
         }
@@ -357,5 +361,4 @@ public class ArchiveViewActivity extends Activity {
             return builder.create();
         }
     }
-
 }

@@ -70,21 +70,21 @@ public class FileFoldersLab {
         spe.putString("SD_Card_Uri", path).commit();
     }
     public FileFoldersLab(Activity context) {
-        mCurPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        String sd = "";
-        if(context.getExternalFilesDirs("").length > 1)
-            sd = context.getExternalFilesDirs("")[1].getAbsolutePath();
-        for(int i = 0; i < context.getExternalFilesDirs("").length; i++ ){
-            Log.d(TAG, "FileFoldersLab: " + context.getExternalFilesDirs("")[i].getAbsolutePath());
-        }
+
         mContext = context;
 
         mActivity = (Activity) mContext;
-
-        if(sd != ""){
-            setSDCardPath(sd.substring(0,sd.indexOf("/Android/")));
+        try {
+            mCurPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+            String sd = "";
+            if(context.getExternalFilesDirs("").length > 1)
+                sd = context.getExternalFilesDirs("")[1].getAbsolutePath();
+            if(sd != ""){
+                setSDCardPath(sd.substring(0,sd.indexOf("/Android/")));
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        Log.d(TAG, "FileFoldersLab: " + getSDCardPath());
     }
 
     public List<File> loadFilesFromPath() {
@@ -258,15 +258,15 @@ public class FileFoldersLab {
         }
     }
     public void prepareEnvironment(){
-        File AppFolder = new File(APP_FOLDER_PATH);
-        if(!AppFolder.exists()){
-            AppFolder.mkdirs();
-        }
-        removeTmpFolder();
-        File tmpFolder = new File(TMP_FOLDER_PATH);
-        tmpFolder.mkdirs();
-        File nomediaFile = new File(tmpFolder.getAbsolutePath() + File.separator + MediaStore.MEDIA_IGNORE_FILENAME);
         try {
+            File AppFolder = new File(APP_FOLDER_PATH);
+            if(!AppFolder.exists()){
+                AppFolder.mkdirs();
+            }
+            removeTmpFolder();
+            File tmpFolder = new File(TMP_FOLDER_PATH);
+            tmpFolder.mkdirs();
+            File nomediaFile = new File(tmpFolder.getAbsolutePath() + File.separator + MediaStore.MEDIA_IGNORE_FILENAME);
             nomediaFile.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();

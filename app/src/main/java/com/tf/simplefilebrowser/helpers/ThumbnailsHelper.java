@@ -6,7 +6,7 @@ import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
 
 public class ThumbnailsHelper {
-    private static final int THUMB_SIZE = 64;
+    private static final int THUMB_SIZE = 48;
     public static Bitmap createThumbForPic(String picPath){
         return ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(picPath),
                 THUMB_SIZE, THUMB_SIZE);

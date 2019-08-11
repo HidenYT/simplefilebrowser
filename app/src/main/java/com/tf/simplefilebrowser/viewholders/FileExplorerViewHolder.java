@@ -129,7 +129,7 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
             mFragment.mActionMode = null;
         }
         SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-        mFragment.updateUI();
+        mFragment.updateUInoDataChanged();
         return true;
     }
 }
