@@ -314,5 +314,22 @@ public class FileFoldersLab {
         String mimeType =  MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         return mimeType;
     }
+
+    public static int getAllFilesAmount(LinkedList<String> src){
+        int total = 0;
+        for (String s:
+             src) {
+            total++;
+            File f = new File(s);
+            if(f.isDirectory()){
+                LinkedList<String> tmp = new LinkedList<>();
+                for (File j: f.listFiles()) {
+                    tmp.add(j.getPath());
+                }
+                total+=getAllFilesAmount(tmp);
+            }
+        }
+        return total;
+    }
 }
 

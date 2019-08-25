@@ -14,9 +14,8 @@ import com.tf.simplefilebrowser.helpers.SelectionHelper;
 import java.io.File;
 
 public class CopyActionMenu implements ActionMode.Callback {
-    ActionMode mActionMode;
-    MenuItem mMenuItem;
-    int storage;
+    private MenuItem mMenuItem;
+    private int storage;
     private FileExplorerFragment mFragment;
     private String initFilePath;
     public CopyActionMenu(FileExplorerFragment fragment, String initFilePath){
@@ -26,7 +25,6 @@ public class CopyActionMenu implements ActionMode.Callback {
     @Override
     public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
         mFragment.mFilesActionActive = true;
-        mActionMode = actionMode;
         mFragment.getActivity().getMenuInflater().inflate(R.menu.file_explorer_fragment_menu_paste,menu);
         return true;
     }
@@ -84,7 +82,7 @@ public class CopyActionMenu implements ActionMode.Callback {
                             }
                         }
                     }
-                    mFragment.updateUI();
+                    mFragment.updateUI(false);
 
                 }
             }).start();
@@ -97,7 +95,7 @@ public class CopyActionMenu implements ActionMode.Callback {
                         setCurPath(FileFoldersLab.get(mFragment.getActivity()).getINTERNAL_STORAGE_PATH());
                 mFragment.mSpinner.setSelection(0);
                 mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
         }
         if(menuItem.getItemId() == R.id.action_bar_sd_card){
@@ -108,19 +106,19 @@ public class CopyActionMenu implements ActionMode.Callback {
                         setCurPath(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath());
                 mFragment.mSpinner.setSelection(1);
                 mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
         }
         if(menuItem.isCheckable() && !menuItem.isChecked()){
             if(menuItem.getItemId() == R.id.menu_sort_name){
                 mFragment.sortMode = FileExplorerFragment.SortModes.ByName;
                 menuItem.setChecked(true);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
             if(menuItem.getItemId() == R.id.menu_sort_date){
                 mFragment.sortMode = FileExplorerFragment.SortModes.ByDate;
                 menuItem.setChecked(true);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
         }
 
@@ -130,10 +128,9 @@ public class CopyActionMenu implements ActionMode.Callback {
     @Override
     public void onDestroyActionMode(ActionMode actionMode) {
         mFragment.mFilesActionActive = false;
-        mActionMode = null;
         if(mMenuItem == null)
             SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-        mFragment.updateUI();
+        mFragment.updateUI(false);
         mMenuItem = null;
     }
 }

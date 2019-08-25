@@ -2,6 +2,7 @@ package com.tf.simplefilebrowser.viewholders;
 
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +47,9 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
             mItemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(activity.mActionMode != null)
+                        activity.mActionMode.finish();
+                    activity.selection.getSelectedFiles().clear();
                     activity.CUR_ZIP_VIEW_PATH = entry.getName();
                     activity.updateUI();
                 }
@@ -77,7 +81,8 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
                     activity.selection.addFileToSelection(entry.getName());
                     if(entry.isDirectory()){
                         for(ZipEntry i : activity.mEntries){
-                            if(i.getName().startsWith(entry.getName())){
+                            if(i.getName().startsWith(entry.getName()) &&
+                            !i.getName().equals(entry.getName())){
                                 activity.selection.addFileToSelection(i.getName());
                             }
                         }
@@ -88,7 +93,8 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
                         activity.selection.removeFileFromSelection(entry.getName());
                         if(entry.isDirectory()){
                             for(ZipEntry i : activity.mEntries){
-                                if(i.getName().startsWith(entry.getName())){
+                                if(i.getName().startsWith(entry.getName()) &&
+                                !i.getName().equals(entry.getName())){
                                     activity.selection.removeFileFromSelection(i.getName());
                                 }
                             }
@@ -101,14 +107,19 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
                         activity.selection.addFileToSelection(entry.getName());
                         if(entry.isDirectory()){
                             for(ZipEntry i : activity.mEntries){
-                                if(i.getName().startsWith(entry.getName())){
+                                if(i.getName().startsWith(entry.getName())
+                                && !i.getName().equals(entry.getName())){
                                     activity.selection.addFileToSelection(i.getName());
                                 }
                             }
                         }
                     }
                 }
-
+                Log.d("TAG", "onClick: " + activity.selection.getSelectedFiles().size());
+                for (String s:
+                        activity.selection.getSelectedFiles()) {
+                    Log.d("TAG", "onClick: " + s);
+                }
             }
         });
     }

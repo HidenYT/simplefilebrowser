@@ -5,9 +5,14 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.provider.DocumentFile;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -22,22 +27,29 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
-import com.tf.simplefilebrowser.adapters.ArchiveExtractPathSelectionAdapter;
 import com.tf.simplefilebrowser.adapters.ArchiveViewAdapter;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.R;
+import com.tf.simplefilebrowser.helpers.NotificationsLab;
 import com.tf.simplefilebrowser.helpers.ZipArchiveHelper;
 import com.tf.simplefilebrowser.helpers.ZipFileSelection;
+import com.tf.simplefilebrowser.helpers.archives.zip.ZipExtractor;
+import com.tf.simplefilebrowser.helpers.archives.zip.ZipProcess;
+import com.touchforce.pathselectiondialog.OnPathSelectedListener;
+import com.touchforce.pathselectiondialog.PathSelectionDialog;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+
 public class ArchiveViewActivity extends Activity {
     private static final String EXTRA_ARCHIVE = "com.tf.simplefilebrowser.archive";
+    private static final String EXTRA_ARCHIVE_URI = "com.tf.simplefilebrowser.archiveuri";
     public RecyclerView mRecyclerView;
     private Activity mContext;
     public File archive;
@@ -53,13 +65,27 @@ public class ArchiveViewActivity extends Activity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         return intent;
     }
+    public static Intent newIntent(Context packageContext, Uri archiveUri) {
+        Intent intent = new Intent(packageContext, ArchiveViewActivity.class);
+        intent.putExtra(EXTRA_ARCHIVE_URI, archiveUri.toString());
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        return intent;
+    }
     public String CUR_ZIP_VIEW_PATH="";
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_archive_view);
         mContext = this;
-        archive = (File) getIntent().getSerializableExtra(EXTRA_ARCHIVE);
+        if(getIntent().getSerializableExtra(EXTRA_ARCHIVE) != null){
+            archive = (File) getIntent().getSerializableExtra(EXTRA_ARCHIVE);
+        }else if(getIntent().getStringExtra(EXTRA_ARCHIVE_URI) != null){
+            Uri uri = Uri.parse(getIntent().getStringExtra(EXTRA_ARCHIVE_URI));
+            String a = getRealUri(uri);
+            archive = new File(a);
+        }
+
+        Log.d(TAG, "onCreate: " + archive.getAbsolutePath());
         mRecyclerView = (RecyclerView) findViewById(R.id.archive_view_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         selection = new ZipFileSelection(this);
@@ -72,129 +98,9 @@ public class ArchiveViewActivity extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        mToolbar.setTitleTextColor(Color.WHITE);
         updateUI();
     }
-    /*public class ArchiveViewViewHolder extends RecyclerView.ViewHolder{
-        TextView mFileTitle;
-        ImageView mFileIcon;
-        View mItemView;
-        ConstraintLayout mFileBG;
-        ArchiveViewViewHolder(LayoutInflater inflater, ViewGroup parent) {
-            super(inflater.inflate(R.layout.list_item_files, parent, false));
-            mFileTitle = itemView.findViewById(R.id.file_title_view);
-            mFileIcon = itemView.findViewById(R.id.file_icon_view);
-            mFileBG = itemView.findViewById(R.id.file_background_view);
-            mItemView = itemView;
-        }
-        public void bind(final ZipEntry entry){
-            if(selection.fileIsSelected(entry.getName())){
-                mFileBG.setBackgroundResource(R.drawable.ripple_green);
-            }else{
-                mFileBG.setBackgroundResource(R.drawable.ripple_default);
-            }
-            if(entry.isDirectory()){
-                mFileIcon.setImageResource(R.drawable.ic_folder_icon);
-                String path = entry.getName().substring(0,entry.getName().length()-1);
-                if(path.contains("/"))
-                    mFileTitle.setText(path.substring(path.lastIndexOf("/")+1));
-                else
-                    mFileTitle.setText(path);
-                mItemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CUR_ZIP_VIEW_PATH = entry.getName();
-                        updateUI();
-                    }
-                });
-            }else{
-                mFileIcon.setImageResource(R.drawable.ic_file_icon);
-                if(entry.getName().contains("/"))
-                    mFileTitle.setText(entry.getName().substring(entry.getName().lastIndexOf("/")+1));
-                else
-                    mFileTitle.setText(entry.getName());
-                mItemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String tmpFold = FileFoldersLab.get(mContext).TMP_FOLDER_PATH;
-                        ZipArchiveHelper.get(mContext, getContentResolver()).unzipFile(archive.getAbsolutePath(),
-                                tmpFold,entry.getName());
-                        FileFoldersLab.get(mContext).openFile(new File(tmpFold + File.separator +
-                                entry.getName().substring(entry.getName().lastIndexOf("/")+1)));
-                    }
-                });
-            }
-            mFileIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(selection.getSelectedFiles().size() == 0){
-                        startActionMode(new ExtractMenu());
-                        mFileBG.setBackgroundResource(R.drawable.ripple_green);
-                        selection.addFileToSelection(entry.getName());
-                        if(entry.isDirectory()){
-                            for(ZipEntry i : mEntries){
-                                if(i.getName().startsWith(entry.getName())){
-                                    selection.addFileToSelection(i.getName());
-                                }
-                            }
-                        }
-                    }else{
-                        if(selection.fileIsSelected(entry.getName())){
-                            mFileBG.setBackgroundResource(R.drawable.ripple_default);
-                            selection.removeFileFromSelection(entry.getName());
-                            if(entry.isDirectory()){
-                                for(ZipEntry i : mEntries){
-                                    if(i.getName().startsWith(entry.getName())){
-                                        selection.removeFileFromSelection(i.getName());
-                                    }
-                                }
-                            }
-                            if(selection.getSelectedFiles().size() == 0){
-                                mActionMode.finish();
-                            }
-                        }else{
-                            mFileBG.setBackgroundResource(R.drawable.ripple_green);
-                            selection.addFileToSelection(entry.getName());
-                            if(entry.isDirectory()){
-                                for(ZipEntry i : mEntries){
-                                    if(i.getName().startsWith(entry.getName())){
-                                        selection.addFileToSelection(i.getName());
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                }
-            });
-        }
-    }
-    public class ArchiveViewAdapter extends RecyclerView.Adapter<ArchiveViewViewHolder>{
-        LinkedList<ZipEntry> mFiles;
-        public ArchiveViewAdapter(LinkedList<ZipEntry> files){
-            mFiles = files;
-        }
-
-        @Override
-        public ArchiveViewViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-            LayoutInflater inflater = LayoutInflater.from(mContext);
-            return new ArchiveViewViewHolder(inflater,viewGroup);
-        }
-
-        @Override
-        public void onBindViewHolder(ArchiveViewViewHolder archiveViewViewHolder, int i) {
-            archiveViewViewHolder.bind(mFiles.get(i));
-        }
-
-        @Override
-        public int getItemCount() {
-            return mFiles.size();
-        }
-
-        public void setFiles(LinkedList<ZipEntry> files){
-            mFiles = files;
-        }
-    }*/
     public void updateUI() {
         LinkedList<ZipEntry> f = FileFoldersLab.sortZipEntries(getEntriesCurPath());
         if(mAdapter == null){
@@ -215,6 +121,8 @@ public class ArchiveViewActivity extends Activity {
                 finish();
                 overridePendingTransition(0,0);
             } else{
+                if(mActionMode != null)
+                    mActionMode.finish();
                 CUR_ZIP_VIEW_PATH = CUR_ZIP_VIEW_PATH.substring(0, CUR_ZIP_VIEW_PATH.length()-1);
                 CUR_ZIP_VIEW_PATH = CUR_ZIP_VIEW_PATH.substring(0, CUR_ZIP_VIEW_PATH.lastIndexOf("/")+1);
                 updateUI();
@@ -241,8 +149,15 @@ public class ArchiveViewActivity extends Activity {
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             if(item.getItemId() == R.id.extract_action_button){
-                PathSelectionWindow psw = new PathSelectionWindow();
-                psw.create().show();
+                PathSelectionDialog psd = new PathSelectionDialog(mContext, "Choose extraction path");
+                psd.setOnSelectedListener(new OnPathSelectedListener() {
+                    @Override
+                    public void onPathSelected(String curPath) {
+                        startExtraction(curPath);
+                    }
+                });
+
+                psd.createDialog();
             }
             if(item.getItemId() == R.id.menu_select_all){
                 LinkedList<String> all = getNamesCurPath();
@@ -251,7 +166,8 @@ public class ArchiveViewActivity extends Activity {
                     if(all.contains(ze.getName())){
                         if(ze.isDirectory()){
                             for(ZipEntry i : mEntries){
-                                if(i.getName().startsWith(ze.getName())){
+                                if(i.getName().startsWith(ze.getName())
+                                && !i.getName().equals(ze.getName())){
                                     selection.addFileToSelection(i.getName());
                                 }
                             }
@@ -274,7 +190,7 @@ public class ArchiveViewActivity extends Activity {
     private LinkedList<ZipEntry> getEntriesCurPath(){
         LinkedList<ZipEntry> files = new LinkedList<>();
         try {
-            ZipFile zipFile = new ZipFile(archive.getAbsoluteFile());
+            ZipFile zipFile = new ZipFile(archive.getPath());
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             ZipEntry entry;
             while(entries.hasMoreElements()){
@@ -315,50 +231,36 @@ public class ArchiveViewActivity extends Activity {
         return s;
     }
 
-    public class PathSelectionWindow{
-        ArchiveExtractPathSelectionAdapter mAdapter;
-        AlertDialog.Builder builder;
-        public String pathSelectionCurPath;
-        PathSelectionWindow(){
-            builder = new AlertDialog.Builder(mContext);
-            builder.setTitle("Select extraction path");
-            View v = LayoutInflater.from(mContext).inflate(R.layout.recycler_view, null);
-            RecyclerView recyclerView = v.findViewById(R.id.file_explorer_recycler_view);
-            recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-            mAdapter = new ArchiveExtractPathSelectionAdapter(FileFoldersLab.get(mContext)
-                    .loadFilesFromPath(Environment.getExternalStorageDirectory().getAbsolutePath()),
-                    mContext, this);
-            builder.setPositiveButton("Here", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ZipArchiveHelper.get(mContext, getContentResolver()).unzipFiles(archive.getAbsolutePath(),
-                                    pathSelectionCurPath,
-                                    selection.getSelectedFiles(), CUR_ZIP_VIEW_PATH);
-                        }
-                    }).start();
+    private void startExtraction(final String curPath){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ZipProcess r = new ZipExtractor(archive.getPath(),curPath,
+                        selection.getSelectedFiles(), CUR_ZIP_VIEW_PATH);
+                for (String e:
+                     selection.getSelectedFiles()) {
+
                 }
-            });
-            builder.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                @Override
-                public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
-                    if(keyEvent.getAction() == KeyEvent.ACTION_UP && keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK){
-                        pathSelectionCurPath = pathSelectionCurPath.substring(0, pathSelectionCurPath.length()-1);
-                        pathSelectionCurPath = pathSelectionCurPath.substring(0, pathSelectionCurPath.lastIndexOf("/")+1);
-                        mAdapter.setFiles(FileFoldersLab.get(mContext)
-                                .loadFilesFromPath(pathSelectionCurPath));
-                        mAdapter.notifyDataSetChanged();
-                    }
-                    return true;
-                }
-            });
-            recyclerView.setAdapter(mAdapter);
-            builder.setView(v);
+                NotificationsLab.get(mContext).createZipProgress(
+                        Thread.currentThread().getId(), r,
+                        "Extracting files",
+                        "Extraction in progress");
+                r.run();
+            }
+        }).start();
+    }
+
+    private String getRealUri(Uri uri){
+        String result;
+        Cursor cursor = getContentResolver().query(uri, null,null, null, null);
+        if(cursor == null){
+            result = uri.getPath();
+        } else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
         }
-        AlertDialog create(){
-            return builder.create();
-        }
+        return result;
     }
 }

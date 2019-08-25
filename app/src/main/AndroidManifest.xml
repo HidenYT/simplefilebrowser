@@ -22,10 +22,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter android:scheme="http"
-                tools:ignore="AppLinkUrlError">
+            <intent-filter  tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
                 <data android:mimeType="application/zip"/>
             </intent-filter>
         </activity>

@@ -12,7 +12,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -45,9 +47,13 @@ import com.tf.simplefilebrowser.ActionMenus.MoveActionMenu;
 import com.tf.simplefilebrowser.ActionMenus.MoveMultipleActionMenu;
 import com.tf.simplefilebrowser.helpers.AlertDialogHelper;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
+import com.tf.simplefilebrowser.helpers.NotificationsLab;
 import com.tf.simplefilebrowser.helpers.SelectionHelper;
 import com.tf.simplefilebrowser.helpers.StorageHelper;
-import com.tf.simplefilebrowser.helpers.ZipArchiveHelper;
+import com.tf.simplefilebrowser.helpers.archives.ZipCompressor;
+import com.tf.simplefilebrowser.helpers.archives.zip.ZipExtractor;
+import com.tf.simplefilebrowser.helpers.archives.zip.ZipProcess;
+import com.tf.simplefilebrowser.viewholders.FileExplorerViewHolder;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -60,7 +66,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     private TextView mCurrentPathTextView;
     private TextView mNoFilesTextView;
     public boolean mFilesActionActive;
-    public ActionMode mActionMode;
+    public ActionMode mainActionMode;
     public Spinner mSpinner;
     private static final int REQUEST_NEW_FILE_TYPE = 0;
     private static final String DIALOG_NEW_FILE_TYPE = "NewFileType";
@@ -70,6 +76,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     private final String TAG = "TAG";
     private FileExplorerFragment mFileExplorerFragment;
     public ContentResolver mContentResolver;
+
 
     public enum FileActions{
         COPY,
@@ -86,8 +93,12 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     private final int SD_CARD = 1;
     public int curStorage = 0;
     private final String SAVED_INSTANCE_CURRENT_PATH = "CurrentPath";
-    ArrayAdapter<CharSequence> mSpinnerAdapter;
+    private boolean layoutIsDragging = false;
 
+    private Thread thumbnailThread;
+
+    ArrayAdapter<CharSequence> mSpinnerAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
@@ -106,9 +117,10 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         mFileExplorerFragment = this;
         mContentResolver = getActivity().getContentResolver();
         FileFoldersLab.get(getActivity()).prepareEnvironment();
-        View view = inflater.inflate(R.layout.file_explorer_fragment, container,false);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        final View view = inflater.inflate(R.layout.file_explorer_fragment, container,false);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.file_explorer_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mCurrentPathTextView = (TextView) view.findViewById(R.id.cur_path_text_view);
         mNoFilesTextView = (TextView) view.findViewById(R.id.no_files_text_view);
@@ -132,12 +144,64 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         getActivity().setActionBar(mToolbar);
         getActivity().getActionBar().setDisplayShowTitleEnabled(false);
         setHasOptionsMenu(true);
-        mRecyclerView.setItemViewCacheSize(20);
-        mRecyclerView.setDrawingCacheEnabled(true);
-        mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        //mRecyclerView.setItemViewCacheSize(20);
+        //mRecyclerView.setDrawingCacheEnabled(true);
+        //mRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, final int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                Log.d(TAG, "onScrollStateChanged: ");
+                stopThumbnailLoad();
+                thumbnailThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(newState == RecyclerView.SCROLL_STATE_IDLE){
+                            layoutIsDragging = false;
+
+                            createThumbnails();
+
+                            /*for(int i = 0; i < viewHolders.size(); i++){
+                                viewHolders.get(i).createThumbnail();
+                                if(thumbnailThread.isInterrupted() || layoutIsDragging){
+                                    break;
+                                }
+                            }*/
+                        }
+                        if(newState == RecyclerView.SCROLL_STATE_DRAGGING){
+                            layoutIsDragging = true;
+                        }
+                    }
+                });
+                thumbnailThread.start();
+
+            }
+        });
+
+        /*mRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(!layoutIsDragging){
+                            for(int i = 0; i < viewHolders.size(); i++){
+                                viewHolders.get(i).createThumbnail();
+                            }
+                        }
+                    }
+                }).start();
+            }
+        });*/
         mRecyclerView.setHasFixedSize(true);
-        updateUI();
+        updateUI(true);
         return view;
+    }
+
+    public void stopThumbnailLoad(){
+        if(thumbnailThread != null){
+            thumbnailThread.interrupt();
+        }
     }
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -152,7 +216,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     @Override
     public void onResume(){
         super.onResume();
-        updateUI();
+        updateUI(true);
     }
     @Override
     public void onDestroy() {
@@ -181,17 +245,19 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     }
 
     public void onBackButtonPressed() {
+        layoutIsDragging = false;
         try {
             FileFoldersLab.get(getActivity()).
                     setCurPath(FileFoldersLab.
                             get(getActivity()).prevPath());
             if(!mFilesActionActive){
                 SelectionHelper.get(getActivity()).getSelectedFiles().clear();
-                if(mActionMode != null){
-                    mActionMode.finish();
+                if(mainActionMode != null){
+                    mainActionMode.finish();
                 }
             }
-            updateUI();
+            stopThumbnailLoad();
+            updateUI(true);
             mRecyclerView.getLayoutManager().scrollToPosition(0);
         }catch (Exception e){
             e.printStackTrace();
@@ -204,12 +270,12 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             if(item.getItemId() == R.id.menu_sort_name){
                 sortMode = SortModes.ByName;
                 item.setChecked(true);
-                updateUI();
+                updateUI(false);
             }
             if(item.getItemId() == R.id.menu_sort_date){
                 sortMode = SortModes.ByDate;
                 item.setChecked(true);
-                updateUI();
+                updateUI(false);
             }
         }
         if(item.getItemId() == R.id.menu_select_all){
@@ -228,7 +294,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         return super.onOptionsItemSelected(item);
     }
 
-    public void updateUI() {
+    public void updateUI(final boolean refresh) {
+        Log.d(TAG, "updateUI: started");
+        stopThumbnailLoad();
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -247,24 +315,39 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     }
                     String curPath = FileFoldersLab.get(getActivity()).getCurPath();
                     mCurrentPathTextView.setText(curPath);
-                    if (mAdapter == null) {
+                    if(refresh){
                         mAdapter = new FileExplorerAdapter(mFileExplorerFragment, files);
                         mRecyclerView.setAdapter(mAdapter);
                     } else {
                         mAdapter.setFiles(files);
                         mAdapter.notifyDataSetChanged();
                     }
+
                     if(FileFoldersLab.get(getActivity()).getCurPath().startsWith(
-                            FileFoldersLab.get(getActivity()).getSDCardPath()
-                    )){
+                            FileFoldersLab.get(getActivity()).getSDCardPath())){
                         mSpinner.setSelection(1);
                         curStorage = 1;
                     }
+
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+                Log.d(TAG, "updateUI: preEnded");
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        thumbnailThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                createThumbnails();
+                            }
+                        });
+                        thumbnailThread.start();
+                    }
+                }, 50);
             }
         });
+        Log.d(TAG, "updateUI: ended");
     }
     public void updateUInoDataChanged(){
         getActivity().runOnUiThread(new Runnable() {
@@ -273,8 +356,19 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 mAdapter.notifyDataSetChanged();
             }
         });
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                thumbnailThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        createThumbnails();
+                    }
+                });
+                thumbnailThread.start();
+            }
+        }, 50);
     }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode != Activity.RESULT_OK){
@@ -283,13 +377,13 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         if(requestCode == AlertDialogHelper.REQUEST_FILE_NAME){
             FileFoldersLab.get(getActivity()).createFile(data.
                     getStringExtra(AlertDialogHelper.PromptTextInput.EXTRA_TITLE));
-            updateUI();
+            updateUI(false);
         }
         if(requestCode == AlertDialogHelper.REQUEST_FOLDER_NAME){
             FileFoldersLab.get(getActivity()).
                     createFolder(data.
                             getStringExtra(AlertDialogHelper.PromptTextInput.EXTRA_TITLE));
-            updateUI();
+            updateUI(false);
         }
         if(requestCode == AlertDialogHelper.REQUEST_FILE_ACTION){
             if(data.getSerializableExtra(AlertDialogHelper.LongTouchMenu.RESULT_ACTION) == FileActions.COPY){
@@ -303,7 +397,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             if(data.getSerializableExtra(AlertDialogHelper.LongTouchMenu.RESULT_ACTION) == FileActions.COMPRESS){
                 LinkedList<String> l = new LinkedList<>();
                 l.add(data.getStringExtra(AlertDialogHelper.LongTouchMenu.ARG_FILE_NAME));
-                compressSelectedFiles(l);
+                compressSelectedFiles(l, null);
             }
         }
         if(requestCode == AlertDialogHelper.REQUEST_RENAME){
@@ -315,10 +409,10 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 DocumentFile doc = StorageHelper.get(getActivity()).getDocumentFile(file);
                 doc.renameTo(data.getStringExtra(AlertDialogHelper.PromptTextInput.EXTRA_TITLE));
             }
-            updateUI();
+            updateUI(false);
         }
         if(requestCode == REQUEST_FILES_ACCESS){
-            updateUI();
+            updateUI(false);
         }
         if(requestCode == REQUEST_SD_CARD_PATH){
             if(data != null && takePermission(getActivity(), data.getData())){
@@ -328,87 +422,95 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         }
     }
 
-    private void compressSelectedFiles(final LinkedList<String> selectedFiles){
-        final String curPath = FileFoldersLab.get(getActivity()).getCurPath();
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(R.string.archive_name));
-        final EditText v = new EditText(getActivity());
-        v.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(v);
-        builder.setPositiveButton(R.string.DIALOG_OK, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(!new File(FileFoldersLab.get(getActivity()).
-                                getCurPath() + File.separator + v.getText()).exists() &&
-                                !new File(FileFoldersLab.get(getActivity()).
-                                        getCurPath() + File.separator + v.getText() + ".zip").exists()){
-                            if(v.getText().toString().matches("^.*\\.zip$")){
-                                ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
-                                        selectedFiles,
-                                        curPath + File.separator + v.getText(),
-                                        "",null, curPath);
-                            }else{
-                                ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
-                                        selectedFiles,
-                                        curPath + File.separator + v.getText() + ".zip",
-                                        "",null, curPath);
-                            }
-                        }else{
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast t = Toast.makeText(getActivity(),
-                                            getString(R.string.archive_exists), Toast.LENGTH_SHORT);
-                                    t.show();
-                                }
-                            });
-                        }
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                updateUI();
-                                if(mActionMode != null)
-                                    mActionMode.finish();
-                            }
-                        });
-
-                    }
-                }).start();
-            }
-        });
-        builder.setNegativeButton(R.string.DIALOG_CANCEL, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                SelectionHelper.get(getActivity()).getSelectedFiles().clear();
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateUI();
-                        if(mActionMode != null)
-                            mActionMode.finish();
-                    }
-                });
-            }
-        });
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                builder.create();
-                builder.show();
-            }
-        });
-    }
+//    private void compressSelectedFiles(final LinkedList<String> selectedFiles){
+//        final String curPath = FileFoldersLab.get(getActivity()).getCurPath();
+//        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//        builder.setTitle(getString(R.string.archive_name));
+//        final EditText v = new EditText(getActivity());
+//        v.setInputType(InputType.TYPE_CLASS_TEXT);
+//        builder.setView(v);
+//        builder.setPositiveButton(R.string.DIALOG_OK, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if(!new File(FileFoldersLab.get(getActivity()).
+//                                getCurPath() + File.separator + v.getText()).exists() &&
+//                                !new File(FileFoldersLab.get(getActivity()).
+//                                        getCurPath() + File.separator + v.getText() + ".zip").exists()){
+//                            String format;
+//                            if(v.getText().toString().matches("^.*\\.zip$")){
+//                                format = "";
+//                                /*ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
+//                                        selectedFiles,
+//                                        curPath + File.separator + v.getText(),
+//                                        "",null, curPath);*/
+//                            }else{
+//                                format = ".zip";
+//                                /*ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
+//                                        selectedFiles,
+//                                        curPath + File.separator + v.getText() + ".zip",
+//                                        "",null, curPath);*/
+//                            }
+//                            Runnable r = new ZipCompressor(
+//                                    getActivity(), selectedFiles, curPath + File.separator +
+//                                    v.getText() + format, "",
+//                                    null, curPath, mContentResolver);
+//                            r.run();
+//                        }else{
+//                            getActivity().runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    Toast t = Toast.makeText(getActivity(),
+//                                            getString(R.string.archive_exists), Toast.LENGTH_SHORT);
+//                                    t.show();
+//                                }
+//                            });
+//                        }
+//                        getActivity().runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                updateUI();
+//                                if(mainActionMode != null)
+//                                    mainActionMode.finish();
+//                            }
+//                        });
+//
+//                    }
+//                }).start();
+//            }
+//        });
+//        builder.setNegativeButton(R.string.DIALOG_CANCEL, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                SelectionHelper.get(getActivity()).getSelectedFiles().clear();
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        updateUI();
+//                        if(mainActionMode != null)
+//                            mainActionMode.finish();
+//                    }
+//                });
+//            }
+//        });
+//        getActivity().runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                builder.create();
+//                builder.show();
+//            }
+//        });
+//    }
     private void compressSelectedFiles(final LinkedList<String> selectedFiles, final multipleFilesActionMenu menu){
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                updateUI();
-                if(mActionMode != null){
+                updateUI(false);
+                if(mainActionMode != null && menu != null){
                     menu.mDeleteSelection = false;
-                    mActionMode.finish();
+                    mainActionMode.finish();
                 }
             }
         });
@@ -428,17 +530,29 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                                 getCurPath() + File.separator + v.getText()).exists() &&
                                 !new File(FileFoldersLab.get(getActivity()).
                                         getCurPath() + File.separator + v.getText() + ".zip").exists()){
+                            String format;
                             if(v.getText().toString().matches("^.*\\.zip$")){
-                                ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
+                                format = "";
+                                /*ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
                                         selectedFiles,
                                         curPath + File.separator + v.getText(),
-                                        "",null, curPath);
+                                        "",null, curPath);*/
                             }else{
-                                ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
+                                format = ".zip";
+                                /*ZipArchiveHelper.get(getActivity(),mContentResolver).createZipFromFiles(
                                         selectedFiles,
                                         curPath + File.separator + v.getText() + ".zip",
-                                        "",null, curPath);
+                                        "",null, curPath);*/
                             }
+                            ZipProcess r = new ZipCompressor(
+                                    getActivity(), selectedFiles, curPath + File.separator +
+                                    v.getText() + format, "",
+                                    null, curPath, mContentResolver, null);
+                            NotificationsLab.get(getActivity()).createZipProgress(
+                                    Thread.currentThread().getId(), r,
+                                    "Compressing files",
+                                    "Compression in progress");
+                            r.run();
                         }else{
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -453,7 +567,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                             @Override
                             public void run() {
                                 SelectionHelper.get(getActivity()).getSelectedFiles().clear();
-                                updateUI();
+                                updateUI(false);
                             }
                         });
                     }
@@ -464,7 +578,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 SelectionHelper.get(getActivity()).getSelectedFiles().clear();
-                updateUI();
+                updateUI(false);
             }
         });
         getActivity().runOnUiThread(new Runnable() {
@@ -488,7 +602,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mActivity = getActivity();
-            mActionMode = mode;
+            mainActionMode = mode;
             mMenuItem = null;
             mActivity.getMenuInflater().inflate(R.menu.multiple_files_action_menu, menu);
             return true;
@@ -520,11 +634,11 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
-            mActionMode = null;
+            mainActionMode = null;
             if(mMenuItem == null && mDeleteSelection)
                 SelectionHelper.get(getActivity()).getSelectedFiles().clear();
             mMenuItem = null;
-            updateUI();
+            updateUI(false);
         }
     }
 
@@ -536,7 +650,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 curStorage = 0;
                 FileFoldersLab.get(getActivity()).
                         setCurPath(FileFoldersLab.get(getActivity()).getINTERNAL_STORAGE_PATH());
-                updateUI();
+                updateUI(false);
             }else{
                 if(FileFoldersLab.get(getActivity()).getSDCardUri().equals("not_found")){
                     getSDCardPath();
@@ -545,7 +659,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     curStorage = 1;
                     FileFoldersLab.get(getActivity()).
                             setCurPath(FileFoldersLab.get(getActivity()).getSDCardPath());
-                    updateUI();
+                    updateUI(false);
                 }
             }
             mRecyclerView.getLayoutManager().scrollToPosition(0);
@@ -573,6 +687,19 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         }catch (Exception e){
             e.printStackTrace();
             return false;
+        }
+    }
+    private void createThumbnails(){
+        final int firstVisible = ((LinearLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
+        final int lastVisible = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+        for (int i = firstVisible; i <= lastVisible; i++) {
+            FileExplorerViewHolder vh = (FileExplorerViewHolder)
+                    mRecyclerView.findViewHolderForAdapterPosition(i);
+            if(vh != null)
+                vh.createThumbnail();
+            if(thumbnailThread.isInterrupted() || layoutIsDragging){
+                break;
+            }
         }
     }
 }

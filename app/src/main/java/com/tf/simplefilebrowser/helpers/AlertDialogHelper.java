@@ -201,10 +201,10 @@ public class AlertDialogHelper extends DialogFragment {
                     }
 
                     SelectionHelper.get(activity).getSelectedFiles().clear();
-                    fragment.updateUI();
-                    if(fragment.mActionMode != null){
-                        fragment.mActionMode.finish();
-                        fragment.mActionMode = null;
+                    fragment.updateUI(false);
+                    if(fragment.mainActionMode != null){
+                        fragment.mainActionMode.finish();
+                        fragment.mainActionMode = null;
                     }
                 }
             });
@@ -225,10 +225,10 @@ public class AlertDialogHelper extends DialogFragment {
                         FileFoldersLab.removeFile(filePath);
                     }
                     SelectionHelper.get(activity).getSelectedFiles().clear();
-                    fragment.updateUI();
-                    if(fragment.mActionMode != null){
-                        fragment.mActionMode.finish();
-                        fragment.mActionMode = null;
+                    fragment.updateUI(false);
+                    if(fragment.mainActionMode != null){
+                        fragment.mainActionMode.finish();
+                        fragment.mainActionMode = null;
                     }
                 }
             });
@@ -379,4 +379,10 @@ public class AlertDialogHelper extends DialogFragment {
         }
     }
 
+    public static class ExtractPathWindow extends AlertDialog{
+
+        protected ExtractPathWindow(Context context) {
+            super(context);
+        }
+    }
 }

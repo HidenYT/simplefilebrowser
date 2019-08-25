@@ -14,7 +14,6 @@ import com.tf.simplefilebrowser.helpers.SelectionHelper;
 import java.io.File;
 
 public class MoveActionMenu implements ActionMode.Callback {
-    ActionMode mActionMode;
     MenuItem mMenuItem;
     int storage;
     private FileExplorerFragment mFragment;
@@ -26,7 +25,6 @@ public class MoveActionMenu implements ActionMode.Callback {
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         mFragment.mFilesActionActive = true;
-        mActionMode = mode;
         mFragment.getActivity().getMenuInflater().inflate(R.menu.file_explorer_fragment_menu_paste,menu);
         return true;
     }
@@ -92,7 +90,7 @@ public class MoveActionMenu implements ActionMode.Callback {
                     else
                         FileFoldersLab.removeFile(initFilePath);
 
-                    mFragment.updateUI();
+                    mFragment.updateUI(false);
 
                 }
             }).start();
@@ -105,7 +103,7 @@ public class MoveActionMenu implements ActionMode.Callback {
                         setCurPath(FileFoldersLab.get(mFragment.getActivity()).getINTERNAL_STORAGE_PATH());
                 mFragment.mSpinner.setSelection(0);
                 mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
         }
         if(item.getItemId() == R.id.action_bar_sd_card){
@@ -116,19 +114,19 @@ public class MoveActionMenu implements ActionMode.Callback {
                         setCurPath(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath());
                 mFragment.mSpinner.setSelection(1);
                 mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
         }
         if(item.isCheckable() && !item.isChecked()){
             if(item.getItemId() == R.id.menu_sort_name){
                 mFragment.sortMode = FileExplorerFragment.SortModes.ByName;
                 item.setChecked(true);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
             if(item.getItemId() == R.id.menu_sort_date){
                 mFragment.sortMode = FileExplorerFragment.SortModes.ByDate;
                 item.setChecked(true);
-                mFragment.updateUI();
+                mFragment.updateUI(false);
             }
         }
         return true;
@@ -137,11 +135,10 @@ public class MoveActionMenu implements ActionMode.Callback {
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         mFragment.mFilesActionActive = false;
-        mActionMode = null;
 
         if(mMenuItem == null)
             SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-        mFragment.updateUI();
+        mFragment.updateUI(false);
         mMenuItem = null;
     }
 }

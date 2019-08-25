@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -15,6 +16,7 @@ import java.io.File;
 
 public class FileExplorerActivity extends SingleFragmentActivity {
     private FileExplorerFragment mFileExplorerFragment;
+    private final String TAG = "TAG";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,8 +24,12 @@ public class FileExplorerActivity extends SingleFragmentActivity {
         Intent intent = getIntent();
         Uri data = intent.getData();
         if(data != null && intent != null){
-            Log.d("TAG", "onCreate: " + data.getPath());
-            Intent i = ArchiveViewActivity.newIntent(this, new File(data.getPath()));
+            Intent i = null;
+            if(data.getScheme().equals("content")){
+                i = ArchiveViewActivity.newIntent(this, data);
+            }else if(data.getScheme().equals("file")){
+                i = ArchiveViewActivity.newIntent(this, new File(data.getPath()));
+            }
 
             startActivity(i);
         }

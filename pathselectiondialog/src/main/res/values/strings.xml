@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Path selection dialog</string>
+    <string name="here_button">Here</string>
+    <string name="cancel_button">Cancel</string>
+</resources>

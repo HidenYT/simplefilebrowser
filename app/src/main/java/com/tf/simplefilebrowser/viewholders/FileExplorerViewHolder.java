@@ -4,6 +4,7 @@ import android.app.FragmentManager;
 import android.graphics.Bitmap;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,9 +23,11 @@ import java.io.File;
 public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
     private TextView mFileTitle;
     private ImageView mFileIcon;
-    private File mFile;
+    public File mFile;
     private ConstraintLayout mFileBackground;
     private FileExplorerFragment mFragment;
+    private boolean loadedImage = false;
+    private FileExplorerViewHolder fevh;
     public FileExplorerViewHolder(LayoutInflater inflater, ViewGroup parent, FileExplorerFragment fragment) {
         super(inflater.inflate(R.layout.list_item_files, parent, false));
         mFileTitle = (TextView) itemView.findViewById(R.id.file_title_view);
@@ -33,34 +36,43 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         mFragment = fragment;
         itemView.setOnClickListener(this);
         itemView.setOnLongClickListener(this);
+        fevh = this;
+    }
+
+    public void recycle(){
+        final String mimeType = FileFoldersLab.getFileMimeType(mFile);
+        if(mimeType != null){
+            if(mimeType.startsWith("video/") || mimeType.startsWith("image/")){
+                loadedImage = false;
+            }
+        }
+    }
+
+    public void createThumbnail(){
+        final String mimeType = FileFoldersLab.getFileMimeType(mFile);
+        if(mimeType != null){
+            final Bitmap[] btm = {null};
+            if((mimeType.startsWith("video/") || mimeType.startsWith("image/")) && !loadedImage){
+                if(mimeType.startsWith("video/")){
+                    btm[0] = ThumbnailsHelper.createThumbForVideo(mFile.getAbsolutePath());
+                }else if(mimeType.startsWith("image/")){
+                    btm[0] = ThumbnailsHelper.createThumbForPic(mFile.getAbsolutePath());
+                }
+                mFragment.getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFileIcon.setImageBitmap(btm[0]);
+                        loadedImage = true;
+                    }
+                });
+            }
+        }
     }
     public void bind(final File file) {
         mFile = file;
         mFileTitle.setText(file.getName());
         if (file.isFile()){
             mFileIcon.setImageResource(R.drawable.ic_file_icon);
-            final String mimeType = FileFoldersLab.getFileMimeType(file);
-            if(mimeType != null){
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        final Bitmap[] btm = {null};
-                        if(mimeType.startsWith("video/") || mimeType.startsWith("image/")){
-                            if(mimeType.startsWith("video/")){
-                                btm[0] = ThumbnailsHelper.createThumbForVideo(file.getAbsolutePath());
-                            }else if(mimeType.startsWith("image/")){
-                                btm[0] = ThumbnailsHelper.createThumbForPic(file.getAbsolutePath());
-                            }
-                            mFragment.getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mFileIcon.setImageBitmap(btm[0]);
-                                }
-                            });
-                        }
-                    }
-                }).start();
-            }
             mFileIcon.setContentDescription(mFragment.getString(R.string.file_type_sting));
         }else{
             mFileIcon.setImageResource(R.drawable.ic_folder_icon);
@@ -85,8 +97,8 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
                             mFileBackground.setBackgroundResource(R.drawable.ripple_default);
                             sh.removeSelectedFile(file.getAbsolutePath());
                             if(sh.getSelectedFiles().size() == 0){
-                                if(mFragment.mActionMode!=null)
-                                    mFragment.mActionMode.finish();
+                                if(mFragment.mainActionMode !=null)
+                                    mFragment.mainActionMode.finish();
                             }
                         }else{
                             mFileBackground.setBackgroundResource(R.drawable.ripple_green);
@@ -97,7 +109,6 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
             }
         });
     }
-
     @Override
     public void onClick(View v) {
         if(mFile.isFile()){
@@ -106,15 +117,11 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
             FileFoldersLab.get(mFragment.getActivity()).setCurPath(mFile.getAbsolutePath());
             if(!mFragment.mFilesActionActive){
                 SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-                if(mFragment.mActionMode != null){
-                    mFragment.mActionMode.finish();
+                if(mFragment.mainActionMode != null){
+                    mFragment.mainActionMode.finish();
                 }
             }
-            try {
-                mFragment.updateUI();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+            mFragment.updateUI(true);
             mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
         }
     }
@@ -124,9 +131,9 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         AlertDialogHelper fragment = AlertDialogHelper.LongTouchMenu.newInstance(mFile.getAbsolutePath());
         fragment.setTargetFragment(mFragment, AlertDialogHelper.LongTouchMenu.REQUEST_FILE_ACTION);
         fragment.show(manager, FileExplorerFragment.DIALOG_FILE_ACTION);
-        if(mFragment.mActionMode != null){
-            mFragment.mActionMode.finish();
-            mFragment.mActionMode = null;
+        if(mFragment.mainActionMode != null){
+            mFragment.mainActionMode.finish();
+            mFragment.mainActionMode = null;
         }
         SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
         mFragment.updateUInoDataChanged();

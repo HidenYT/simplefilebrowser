@@ -1,6 +1,8 @@
 package com.tf.simplefilebrowser.adapters;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -21,12 +23,19 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHo
     @Override
     public FileExplorerViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         LayoutInflater layoutInflater = LayoutInflater.from(mFragment.getActivity());
-        return new FileExplorerViewHolder(layoutInflater, viewGroup, mFragment);
+        FileExplorerViewHolder v = new FileExplorerViewHolder(layoutInflater, viewGroup, mFragment);
+        return v;
     }
 
     @Override
     public void onBindViewHolder(FileExplorerViewHolder fileExplorerViewHolder, int i) {
         fileExplorerViewHolder.bind(mFiles.get(i));
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull FileExplorerViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.recycle();
     }
 
     @Override
@@ -36,5 +45,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHo
     public void setFiles(List<File> files){
         mFiles = files;
     }
+
+
 
 }

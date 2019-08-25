@@ -257,15 +257,12 @@ public class ZipArchiveHelper {
                 if(!entry.isDirectory()){
                     if(files.contains(fName)){
                         fName = fName.substring(notInclude.length());
-                        File f = new File(destPath  + File.separator
-                                +
-                                fName);
+                        File f = new File(destPath  + File.separator + fName);
                         if(!new File(f.getParent()).exists()){
                             new File(f.getParent()).mkdirs();
                         }
                         FileOutputStream fos = new FileOutputStream(destPath  + File.separator
-                                +
-                                fName);
+                                + fName);
                         int count;
                         byte[] buff = new byte[4096];
                         InputStream is = zipFile.getInputStream(entry);
@@ -299,5 +296,10 @@ public class ZipArchiveHelper {
             returnEntries.add(entries.nextElement());
         }
         return returnEntries;
+    }
+
+    public static int getEntriesAmount(String zipFilePath) throws IOException {
+        ZipFile f = new ZipFile(zipFilePath);
+        return f.size();
     }
 }
