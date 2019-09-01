@@ -13,9 +13,14 @@ import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.tf.simplefilebrowser.activities.ArchiveViewActivity;
+import com.tf.simplefilebrowser.fragments.FileExplorerFragment;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,6 +37,7 @@ public class FileFoldersLab {
     private static FileFoldersLab sFileFoldersLab;
     private static Activity mActivity;
     private final String TAG = "TAG";
+    public static final String NOT_FOUND = "not_found";
     public String getCurPath() {
         return mCurPath;
     }
@@ -53,7 +59,7 @@ public class FileFoldersLab {
     }
     public String getSDCardPath(){
         SharedPreferences sp = mContext.getSharedPreferences("Prefs", 0);
-        return sp.getString("SD_Card_Path", "not_found");
+        return sp.getString("SD_Card_Path", NOT_FOUND);
     }
     public void setSDCardPath(String path){
         SharedPreferences sp = mContext.getSharedPreferences("Prefs", 0);
@@ -62,7 +68,7 @@ public class FileFoldersLab {
     }
     public String getSDCardUri(){
         SharedPreferences sp = mContext.getSharedPreferences("Prefs", 0);
-        return sp.getString("SD_Card_Uri", "not_found");
+        return sp.getString("SD_Card_Uri", NOT_FOUND);
     }
     public void setSDCardUri(String path){
         SharedPreferences sp = mContext.getSharedPreferences("Prefs", 0);
@@ -330,6 +336,34 @@ public class FileFoldersLab {
             }
         }
         return total;
+    }
+
+    public static void getSDCardAccess(FileExplorerFragment context){
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+        context.startActivityForResult(intent, FileExplorerFragment.REQUEST_SD_CARD_PATH);
+    }
+
+
+    public static String getFileMD5(File f) {
+        StringBuilder result = new StringBuilder();
+        try {
+            FileInputStream fis = new FileInputStream(f);
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] buffer = new byte[8192];
+            int numOfBytesRead;
+            while ((numOfBytesRead = fis.read(buffer)) > 0) {
+                md.update(buffer, 0, numOfBytesRead);
+            }
+            byte[] hash = md.digest();
+            for (int i = 0; i < hash.length; i++) {
+                result.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
+            }
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+        return result.toString();
     }
 }
 

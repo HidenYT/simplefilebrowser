@@ -4,6 +4,7 @@ import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.tf.simplefilebrowser.StorageTypes;
 import com.tf.simplefilebrowser.fragments.FileExplorerFragment;
 import com.tf.simplefilebrowser.R;
 import com.tf.simplefilebrowser.helpers.FileActionsHelper;
@@ -14,11 +15,10 @@ import com.tf.simplefilebrowser.helpers.SelectionHelper;
 import java.io.File;
 import java.util.LinkedList;
 
-public class CopyMultipleActionMenu implements ActionMode.Callback {
-    private MenuItem mMenuItem;
-    private int storage;
+public class CopyMultipleActionMenu extends ActionMenu {
     private FileExplorerFragment mFragment;
     public CopyMultipleActionMenu(FileExplorerFragment fragment){
+        super(fragment);
         mFragment = fragment;
     }
     @Override
@@ -29,30 +29,28 @@ public class CopyMultipleActionMenu implements ActionMode.Callback {
     }
 
     @Override
-    public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-        return false;
-    }
-
-    @Override
     public boolean onActionItemClicked(final ActionMode actionMode, MenuItem menuItem) {
-        mMenuItem = menuItem;
         if(menuItem.getItemId() == R.id.paste_button){
-            storage = mFragment.curStorage;
-            mMenuItem = menuItem;
-            mFragment.getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    actionMode.finish();
-                }
-            });
+            setStorage(mFragment.getCurStorage());
+            setMenuItem(menuItem);
+
             final String finalPath = FileFoldersLab.get(mFragment.getActivity()).getCurPath();
-            final LinkedList<String> arr = SelectionHelper.get(mFragment.getActivity()).getSelectedFiles();
+            final LinkedList<String> arr =
+                    (LinkedList<String>) SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clone();
 
             final LinkedList<String> dests = new LinkedList<>();
             for (String i:
                  arr) {
                 dests.add(finalPath + File.separator + new File(i).getName());
             }
+            mFragment.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    actionMode.finish();
+                    SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
+                    mFragment.updateUI(false);
+                }
+            });
 
             new Thread(new Runnable() {
                 @Override
@@ -61,12 +59,12 @@ public class CopyMultipleActionMenu implements ActionMode.Callback {
                             Thread.currentThread().getId(), arr, dests, "Copying files",
                             "Copying in progress",mFragment.getActivity()
                     );
-                    FileActionsHelper fa = new FileActionsHelper(mFragment.mContentResolver);
+                    FileActionsHelper fa = new FileActionsHelper(mFragment.getContentResolver());
                     for(String k : arr){
                         if(new File(k).isFile()){
                             FileActionsHelper.copyFileClass cfc = fa.new copyFileClass(
                                     new File(k), finalPath, mFragment.getActivity());
-                            if(storage == 0){
+                            if(getStorage() == StorageTypes.InternalStorage){
                                 cfc.copyFile.run();
                             }else {
                                 if(!FileFoldersLab.get(mFragment.getActivity()).getSDCardUri().equals("not_found")){
@@ -75,65 +73,20 @@ public class CopyMultipleActionMenu implements ActionMode.Callback {
                             }
                         }else{
                             FileActionsHelper.copyFolderClass cfc = fa.new copyFolderClass(
-                                    new File(k), FileFoldersLab.get(mFragment.getActivity()).getCurPath(), mFragment.getActivity());
-                            if(storage == 0){
+                                    new File(k), finalPath, mFragment.getActivity());
+                            if(getStorage() == StorageTypes.InternalStorage){
                                 cfc.copyFolder.run();
-                            }
-                            else if(storage == 1){
+                            } else {
                                 if(!FileFoldersLab.get(mFragment.getActivity()).getSDCardUri().equals("not_found")){
                                     cfc.copyFolderToSD.run();
                                 }
                             }
                         }
                     }
-                    SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-                    mFragment.updateUI(false);
                 }
             }).start();
         }
-        if(menuItem.getItemId() == R.id.action_bar_internal_storage){
-            if(mFragment.curStorage != 0){
-                mFragment.curStorage = 0;
-                storage = 0;
-                FileFoldersLab.get(mFragment.getActivity()).
-                        setCurPath(FileFoldersLab.get(mFragment.getActivity()).getINTERNAL_STORAGE_PATH());
-                mFragment.mSpinner.setSelection(0);
-                mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                mFragment.updateUI(false);
-            }
-        }
-        if(menuItem.getItemId() == R.id.action_bar_sd_card){
-            if(mFragment.curStorage != 1){
-                mFragment.curStorage = 1;
-                storage = 1;
-                FileFoldersLab.get(mFragment.getActivity()).
-                        setCurPath(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath());
-                mFragment.mSpinner.setSelection(1);
-                mFragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                mFragment.updateUI(false);
-            }
-        }
-        if(menuItem.isCheckable() && !menuItem.isChecked()){
-            if(menuItem.getItemId() == R.id.menu_sort_name){
-                mFragment.sortMode = FileExplorerFragment.SortModes.ByName;
-                menuItem.setChecked(true);
-                mFragment.updateUI(false);
-            }
-            if(menuItem.getItemId() == R.id.menu_sort_date){
-                mFragment.sortMode = FileExplorerFragment.SortModes.ByDate;
-                menuItem.setChecked(true);
-                mFragment.updateUI(false);
-            }
-        }
+        checkStorageAndSort(menuItem);
         return true;
-    }
-
-    @Override
-    public void onDestroyActionMode(ActionMode actionMode) {
-        mFragment.mFilesActionActive = false;
-        if(mMenuItem == null)
-            SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-        mFragment.updateUI(false);
-        mMenuItem = null;
     }
 }

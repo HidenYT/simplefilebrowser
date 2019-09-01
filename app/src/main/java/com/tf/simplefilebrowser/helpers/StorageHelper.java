@@ -20,7 +20,7 @@ import java.util.List;
 public class StorageHelper {
     private static StorageHelper mStorageHelper;
     private Activity mActivity;
-    String TAG = "TAG";
+    private String TAG = "TAG";
     StorageHelper(Activity activity){
         mActivity = activity;
     }
@@ -32,11 +32,6 @@ public class StorageHelper {
     StorageManager getStorageManager() {
         return (StorageManager) mActivity.getSystemService(Context.STORAGE_SERVICE);
     }
-    /*
-           Use reflection for detecting all storages as android do it
-           probably doesn't work with USB-OTG
-           works only on API 19+
-     */
     public List<String> getAllPaths() {
         List<String> allPaths = new ArrayList<>();
         try {

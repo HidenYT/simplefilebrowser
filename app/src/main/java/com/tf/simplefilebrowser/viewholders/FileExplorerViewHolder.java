@@ -1,19 +1,18 @@
 package com.tf.simplefilebrowser.viewholders;
 
-import android.app.FragmentManager;
 import android.graphics.Bitmap;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.tf.simplefilebrowser.ActionMenus.ActionSelectMenu;
+import com.tf.simplefilebrowser.alertdialogs.LongTouchMenuDialogCreator;
 import com.tf.simplefilebrowser.fragments.FileExplorerFragment;
 import com.tf.simplefilebrowser.R;
-import com.tf.simplefilebrowser.helpers.AlertDialogHelper;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.helpers.SelectionHelper;
 import com.tf.simplefilebrowser.helpers.ThumbnailsHelper;
@@ -91,14 +90,14 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
                     if(sh.getSelectedFiles().size() == 0){
                         mFileBackground.setBackgroundResource(R.drawable.ripple_green);
                         sh.addSelectedFile(file.getAbsolutePath());
-                        mFragment.getActivity().startActionMode(mFragment.new multipleFilesActionMenu());
+                        mFragment.getActivity().startActionMode(new ActionSelectMenu(mFragment));
                     }else{
                         if(sh.isSelected(file.getAbsolutePath())){
                             mFileBackground.setBackgroundResource(R.drawable.ripple_default);
                             sh.removeSelectedFile(file.getAbsolutePath());
                             if(sh.getSelectedFiles().size() == 0){
-                                if(mFragment.mainActionMode !=null)
-                                    mFragment.mainActionMode.finish();
+                                if(mFragment.getActionSelectActionMode() !=null)
+                                    mFragment.getActionSelectActionMode().finish();
                             }
                         }else{
                             mFileBackground.setBackgroundResource(R.drawable.ripple_green);
@@ -117,8 +116,8 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
             FileFoldersLab.get(mFragment.getActivity()).setCurPath(mFile.getAbsolutePath());
             if(!mFragment.mFilesActionActive){
                 SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
-                if(mFragment.mainActionMode != null){
-                    mFragment.mainActionMode.finish();
+                if(mFragment.getActionSelectActionMode() != null){
+                    mFragment.getActionSelectActionMode().finish();
                 }
             }
             mFragment.updateUI(true);
@@ -127,13 +126,17 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
     }
     @Override
     public boolean onLongClick(View v) {
-        FragmentManager manager = mFragment.getFragmentManager();
+        /*FragmentManager manager = mFragment.getFragmentManager();
         AlertDialogHelper fragment = AlertDialogHelper.LongTouchMenu.newInstance(mFile.getAbsolutePath());
         fragment.setTargetFragment(mFragment, AlertDialogHelper.LongTouchMenu.REQUEST_FILE_ACTION);
-        fragment.show(manager, FileExplorerFragment.DIALOG_FILE_ACTION);
-        if(mFragment.mainActionMode != null){
-            mFragment.mainActionMode.finish();
-            mFragment.mainActionMode = null;
+        fragment.show(manager, FileExplorerFragment.DIALOG_FILE_ACTION);*/
+        LongTouchMenuDialogCreator dialogCreator =
+                new LongTouchMenuDialogCreator(mFragment.getActivity(),mFile);
+        dialogCreator.setActionListener(mFragment);
+        dialogCreator.createDialog();
+        if(mFragment.getActionSelectActionMode() != null){
+            mFragment.getActionSelectActionMode().finish();
+            mFragment.setActionSelectActionMode(null);
         }
         SelectionHelper.get(mFragment.getActivity()).getSelectedFiles().clear();
         mFragment.updateUInoDataChanged();

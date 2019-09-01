@@ -20,6 +20,7 @@
     <string name="info_file_string">Информация</string>
     <string name="compress_file_string">Сжать в zip</string>
 
+    <!--Dialogs-->
     <string name="information_title">Информация</string>
     <string name="information_file_name">Имя файла: </string>
     <string name="information_file_path">Путь к файлу: </string>
@@ -37,6 +38,12 @@
     <string name="merge_folders_title">Объединение папок</string>
     <string name="merge_folders">Объединить %1$s и %2$s?</string>
     <string name="rewrite_file_checkbox">Применить ко всем выделенным файлам</string>
+    <string name="new_file">Создать…</string>
+
+    <string name="delete_one_warning_text">Вы уверены, что хотите удалить %1$s?</string>
+    <string name="delete_multiple_warning_text">Вы уверены, что хотите удалить %1$s файлов?</string>
+    <string name="delete_warning_title">Удаление файлов</string>
+    <!--/Dialogs-->
 
     <string-array name="spinner_options">
         <item id="internal_option">Внутренняя память</item>

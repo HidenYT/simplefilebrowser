@@ -31,6 +31,7 @@ import com.tf.simplefilebrowser.adapters.ArchiveViewAdapter;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.R;
 import com.tf.simplefilebrowser.helpers.NotificationsLab;
+import com.tf.simplefilebrowser.helpers.UriHelper;
 import com.tf.simplefilebrowser.helpers.ZipArchiveHelper;
 import com.tf.simplefilebrowser.helpers.ZipFileSelection;
 import com.tf.simplefilebrowser.helpers.archives.zip.ZipExtractor;
@@ -67,6 +68,13 @@ public class ArchiveViewActivity extends Activity {
     }
     public static Intent newIntent(Context packageContext, Uri archiveUri) {
         Intent intent = new Intent(packageContext, ArchiveViewActivity.class);
+        /*packageContext.getContentResolver().takePersistableUriPermission(archiveUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                );*/
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
         intent.putExtra(EXTRA_ARCHIVE_URI, archiveUri.toString());
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         return intent;
@@ -81,7 +89,9 @@ public class ArchiveViewActivity extends Activity {
             archive = (File) getIntent().getSerializableExtra(EXTRA_ARCHIVE);
         }else if(getIntent().getStringExtra(EXTRA_ARCHIVE_URI) != null){
             Uri uri = Uri.parse(getIntent().getStringExtra(EXTRA_ARCHIVE_URI));
-            String a = getRealUri(uri);
+//            String a = getRealUri(uri);
+            String a = UriHelper.getPathFromUri(this, uri);
+            Log.d(TAG, "onCreate: "+a);
             archive = new File(a);
         }
 
@@ -252,13 +262,15 @@ public class ArchiveViewActivity extends Activity {
 
     private String getRealUri(Uri uri){
         String result;
+        Log.d(TAG, "getRealUri: " + uri.getPath());
         Cursor cursor = getContentResolver().query(uri, null,null, null, null);
         if(cursor == null){
             result = uri.getPath();
         } else {
             cursor.moveToFirst();
-            int idx = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            int idx = cursor.getColumnIndex(MediaStore.MediaColumns.DATA);
             result = cursor.getString(idx);
+            Log.d(TAG, "getRealUri11: " + result);
             cursor.close();
         }
         return result;

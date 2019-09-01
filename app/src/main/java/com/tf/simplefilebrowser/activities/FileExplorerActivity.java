@@ -23,7 +23,9 @@ public class FileExplorerActivity extends SingleFragmentActivity {
         setContentView(R.layout.activity_fragment);
         Intent intent = getIntent();
         Uri data = intent.getData();
+
         if(data != null && intent != null){
+            Log.d(TAG, "onCreate: " + data.toString());
             Intent i = null;
             if(data.getScheme().equals("content")){
                 i = ArchiveViewActivity.newIntent(this, data);
