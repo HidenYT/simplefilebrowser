@@ -7,17 +7,19 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.tf.simplefilebrowser.fragments.FileExplorerFragment;
+import com.tf.simplefilebrowser.helpers.PreferencesHelper;
 import com.tf.simplefilebrowser.viewholders.FileExplorerViewHolder;
 
 import java.io.File;
 import java.util.List;
 
 public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHolder>  {
-    List<File> mFiles;
-    FileExplorerFragment mFragment;
+    private List<File> mFiles;
+    private FileExplorerFragment mFragment;
     public FileExplorerAdapter(FileExplorerFragment fragment, List<File> files){
         mFiles = files;
         mFragment = fragment;
+        filterFiles();
     }
 
     @Override
@@ -40,12 +42,22 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHo
 
     @Override
     public int getItemCount() {
+        //filterFiles();
         return mFiles.size();
     }
     public void setFiles(List<File> files){
         mFiles = files;
+        filterFiles();
     }
 
-
+    private void filterFiles(){
+        if(!PreferencesHelper.getInstance(mFragment.getActivity()).isDisplayingHiddenFiles()){
+            for (int i = 0; i < mFiles.size(); i++){
+                if(mFiles.get(i).getName().startsWith(".")){
+                    mFiles.remove(mFiles.get(i));
+                }
+            }
+        }
+    }
 
 }

@@ -9,6 +9,7 @@ import com.tf.simplefilebrowser.StorageTypes;
 import com.tf.simplefilebrowser.fragments.FileExplorerFragment;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.helpers.SelectionHelper;
+import com.tf.simplefilebrowser.helpers.StorageHelper;
 
 public abstract class ActionMenu implements ActionMode.Callback {
     private FileExplorerFragment fragment;
@@ -73,16 +74,18 @@ public abstract class ActionMenu implements ActionMode.Callback {
             fragment.updateUI(false);
         }
         if(item.getItemId() == R.id.action_bar_sd_card){
-            if(FileFoldersLab.get(fragment.getActivity()).getSDCardUri().equals(FileFoldersLab.NOT_FOUND)){
-                FileFoldersLab.getSDCardAccess(fragment);
-            }else{
-                fragment.setCurStorage(StorageTypes.SDCard);
-                storage = StorageTypes.SDCard;
-                FileFoldersLab.get(fragment.getActivity()).
-                        setCurPath(FileFoldersLab.get(fragment.getActivity()).getSDCardPath());
-                fragment.mSpinner.setSelection(1);
-                fragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
-                fragment.updateUI(false);
+            if(StorageHelper.get(fragment.getActivity()).getAllPaths().size() > 1){
+                if(FileFoldersLab.get(fragment.getActivity()).getSDCardUri().equals(FileFoldersLab.NOT_FOUND)){
+                    FileFoldersLab.getSDCardAccess(fragment);
+                }else{
+                    fragment.setCurStorage(StorageTypes.SDCard);
+                    storage = StorageTypes.SDCard;
+                    FileFoldersLab.get(fragment.getActivity()).
+                            setCurPath(FileFoldersLab.get(fragment.getActivity()).getSDCardPath());
+                    fragment.mSpinner.setSelection(1);
+                    fragment.mRecyclerView.getLayoutManager().scrollToPosition(0);
+                    fragment.updateUI(false);
+                }
             }
         }
         if(item.isCheckable() && !item.isChecked()){

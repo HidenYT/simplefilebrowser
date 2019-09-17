@@ -9,5 +9,4 @@ public enum  AlertDialogResultIDs {
     MOVE_FILE,
     RENAME_FILE,
     COMPRESS_FILE,
-    SHOW_FILE_INFORMATION,
 }

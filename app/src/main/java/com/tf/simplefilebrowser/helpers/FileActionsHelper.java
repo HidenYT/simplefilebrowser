@@ -169,6 +169,7 @@ public class FileActionsHelper {
                 }else{
                     final DocumentFile doc = StorageHelper.get(mActivity).getDocumentFile(f);
                     String type = mContentResolver.getType(Uri.fromFile(src));
+                    assert type != null;
                     final DocumentFile doc1 = doc.createFile(type, f.getName());
                     Log.d(TAG, "run: " + doc1.getUri());
                     writeFile(src, doc1);
@@ -384,10 +385,6 @@ public class FileActionsHelper {
             inputStream = new FileInputStream(src);
             Log.d(TAG, "writeFile: " + dest.getUri());
             outputStream = (FileOutputStream) mContentResolver.openOutputStream(dest.getUri());
-
-            final FileChannel fileChannelIn = inputStream.getChannel();
-            final FileChannel fileChannelOut = outputStream.getChannel();
-
             byte[] buf = new byte[8192];
             int len;
             while((len = inputStream.read(buf))>0){
@@ -396,13 +393,8 @@ public class FileActionsHelper {
                 }
                 outputStream.write(buf,0,len);
             }
-            //fileChannelIn.transferTo(0, fileChannelIn.size(), fileChannelOut);
-
-
-            //noinspection ResultOfMethodCallIgnored
         } catch (IOException e) {
             e.printStackTrace();
-            //noinspection ResultOfMethodCallIgnored
         } finally {
             try {
                 if (inputStream != null) inputStream.close();

@@ -1,6 +1,5 @@
 package com.tf.simplefilebrowser.ActionMenus;
 
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +17,7 @@ import java.util.LinkedList;
 
 public class MoveMultipleActionMenu extends ActionMenu {
     private FileExplorerFragment mFragment;
-    public MoveMultipleActionMenu(FileExplorerFragment fragment){
+    MoveMultipleActionMenu(FileExplorerFragment fragment){
         super(fragment);
         mFragment = fragment;
     }

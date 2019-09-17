@@ -22,6 +22,11 @@
         android:icon="@drawable/ic_select_all_button"
         android:id="@+id/menu_select_all"/>
     <item
+        android:title="@string/settings_tile"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_select_all_button"
+        android:id="@+id/settings_button"/>
+    <item
         android:title="About &amp; donate"
         app:showAsAction="always"
         android:id="@+id/about_donate"/>

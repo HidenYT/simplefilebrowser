@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -24,7 +23,7 @@ public class FileExplorerActivity extends SingleFragmentActivity {
         Intent intent = getIntent();
         Uri data = intent.getData();
 
-        if(data != null && intent != null){
+        if(data != null){
             Log.d(TAG, "onCreate: " + data.toString());
             Intent i = null;
             if(data.getScheme().equals("content")){

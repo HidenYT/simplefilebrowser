@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.tf.simplefilebrowser.ActionMenus.ZipExtractionMenu;
 import com.tf.simplefilebrowser.R;
 import com.tf.simplefilebrowser.activities.ArchiveViewActivity;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
@@ -47,8 +48,8 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
             mItemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(activity.mActionMode != null)
-                        activity.mActionMode.finish();
+                    if(activity.getActionMode() != null)
+                        activity.getActionMode().finish();
                     activity.selection.getSelectedFiles().clear();
                     activity.CUR_ZIP_VIEW_PATH = entry.getName();
                     activity.updateUI();
@@ -76,11 +77,11 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
             @Override
             public void onClick(View v) {
                 if(activity.selection.getSelectedFiles().size() == 0){
-                    activity.startActionMode(activity.new ExtractMenu());
+                    activity.startActionMode(new ZipExtractionMenu(activity));
                     mFileBG.setBackgroundResource(R.drawable.ripple_green);
                     activity.selection.addFileToSelection(entry.getName());
                     if(entry.isDirectory()){
-                        for(ZipEntry i : activity.mEntries){
+                        for(ZipEntry i : activity.getEntries()){
                             if(i.getName().startsWith(entry.getName()) &&
                             !i.getName().equals(entry.getName())){
                                 activity.selection.addFileToSelection(i.getName());
@@ -92,7 +93,7 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
                         mFileBG.setBackgroundResource(R.drawable.ripple_default);
                         activity.selection.removeFileFromSelection(entry.getName());
                         if(entry.isDirectory()){
-                            for(ZipEntry i : activity.mEntries){
+                            for(ZipEntry i : activity.getEntries()){
                                 if(i.getName().startsWith(entry.getName()) &&
                                 !i.getName().equals(entry.getName())){
                                     activity.selection.removeFileFromSelection(i.getName());
@@ -100,13 +101,13 @@ public class ArchiveViewViewHolder extends RecyclerView.ViewHolder {
                             }
                         }
                         if(activity.selection.getSelectedFiles().size() == 0){
-                            activity.mActionMode.finish();
+                            activity.getActionMode().finish();
                         }
                     }else{
                         mFileBG.setBackgroundResource(R.drawable.ripple_green);
                         activity.selection.addFileToSelection(entry.getName());
                         if(entry.isDirectory()){
-                            for(ZipEntry i : activity.mEntries){
+                            for(ZipEntry i : activity.getEntries()){
                                 if(i.getName().startsWith(entry.getName())
                                 && !i.getName().equals(entry.getName())){
                                     activity.selection.addFileToSelection(i.getName());

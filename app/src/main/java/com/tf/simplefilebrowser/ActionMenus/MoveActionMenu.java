@@ -10,7 +10,6 @@ import com.tf.simplefilebrowser.R;
 import com.tf.simplefilebrowser.helpers.FileActionsHelper;
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.helpers.NotificationsLab;
-import com.tf.simplefilebrowser.helpers.SelectionHelper;
 
 import java.io.File;
 

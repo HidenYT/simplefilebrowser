@@ -17,13 +17,13 @@ public class InputTextDialog extends DialogCreator {
     private final String[] argName;
     private File file;
 
-    public InputTextDialog(Context context, AlertDialogResultIDs resultID, String argName){
+    InputTextDialog(Context context, AlertDialogResultIDs resultID, String argName){
         super(context);
         this.resultID = resultID;
         this.argName = new String[1];
         this.argName[0] = argName;
     }
-    public InputTextDialog(Context context, AlertDialogResultIDs resultID, File file, String... argNames){
+    InputTextDialog(Context context, AlertDialogResultIDs resultID, File file, String... argNames){
         super(context);
         this.resultID = resultID;
         this.file = file;

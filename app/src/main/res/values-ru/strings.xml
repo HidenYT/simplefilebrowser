@@ -20,6 +20,9 @@
     <string name="info_file_string">Информация</string>
     <string name="compress_file_string">Сжать в zip</string>
 
+
+    <string name="settings_tile">Настройки</string>
+
     <!--Dialogs-->
     <string name="information_title">Информация</string>
     <string name="information_file_name">Имя файла: </string>
@@ -51,4 +54,18 @@
     </string-array>
     <!--Warnings-->
     <string name="archive_exists">Архив с этим именем уже существует!</string>
+
+    <!--Toasts-->
+    <string name="files_access_permission_denied">Пожалуйста, разрешите приложению доступ к хранилищу.</string>
+    <string name="file_already_exists">Файл с таким именем уже существует.</string>
+    <string name="folder_already_exists">Папка с таким именем уже существует.</string>
+    <!--/Toasts-->
+
+    <!--Settings-->
+    <string name="settings_reset_sd_card_path">Установить путь SD карты</string>
+    <string name="settings_reset_sd_card_path_hint">Если вы установили путь SD карты неправильно.</string>
+
+    <string name="settings_display_hidden_files">Показывать скрытые файлы</string>
+    <string name="settings_display_hidden_files_hint">Показывать файлы и папки, начинающиеся с \".\" .</string>
+    <!--/Settings-->
 </resources>

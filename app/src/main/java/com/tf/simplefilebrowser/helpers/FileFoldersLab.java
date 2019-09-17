@@ -12,12 +12,12 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import com.tf.simplefilebrowser.R;
 import com.tf.simplefilebrowser.activities.ArchiveViewActivity;
 import com.tf.simplefilebrowser.fragments.FileExplorerFragment;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -30,7 +30,7 @@ import java.util.zip.ZipEntry;
 
 
 public class FileFoldersLab {
-    protected static Activity mContext;
+    private static Activity mContext;
     private final String INTERNAL_STORAGE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath();
     private final String APP_FOLDER_PATH = INTERNAL_STORAGE_PATH + File.separator + "Simple File Browser";
     public final String TMP_FOLDER_PATH = APP_FOLDER_PATH + File.separator + "tmp";
@@ -85,7 +85,7 @@ public class FileFoldersLab {
             String sd = "";
             if(context.getExternalFilesDirs("").length > 1)
                 sd = context.getExternalFilesDirs("")[1].getAbsolutePath();
-            if(sd != ""){
+            if(!sd.equals("")){
                 setSDCardPath(sd.substring(0,sd.indexOf("/Android/")));
             }
         }catch (Exception e){
@@ -97,8 +97,8 @@ public class FileFoldersLab {
         List<File> mFileFolders = new LinkedList<>();
         File folder = new File(mCurPath);
         File[] files = folder.listFiles();
-        for (File i : files) {
-            mFileFolders.add(i);
+        for(int i =0; i < files.length; i++){
+            mFileFolders.add(files[i]);
         }
         mFileFolders = sortFilesList(mFileFolders);
         return mFileFolders;
@@ -186,12 +186,12 @@ public class FileFoldersLab {
                     e.printStackTrace();
                 }
             }else{
-                File fold = file.getParentFile();
-                DocumentFile a = StorageHelper.get(mContext).getDocumentFile(fold);
+                //File fold = file.getParentFile();
+                DocumentFile a = StorageHelper.get(mContext).getDocumentFile(file);
                 a.createFile("text/*", name);
             }
         }else{
-            final Toast toast = Toast.makeText(mContext, "A file with this name already exists", Toast.LENGTH_SHORT);
+            final Toast toast = Toast.makeText(mContext, R.string.file_already_exists, Toast.LENGTH_SHORT);
             mContext.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -211,7 +211,7 @@ public class FileFoldersLab {
                 a.createDirectory(folderName);
             }
         } else {
-            final Toast toast = Toast.makeText(mContext, "A folder with this name already exists", Toast.LENGTH_SHORT);
+            final Toast toast = Toast.makeText(mContext, R.string.folder_already_exists, Toast.LENGTH_SHORT);
             mContext.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -223,7 +223,8 @@ public class FileFoldersLab {
 
     public static void removeFile(String path) {
         File file = new File(path);
-        if(file.exists()){
+        if(file.exists() &&
+                file.getAbsolutePath().startsWith(FileFoldersLab.get(mActivity).getINTERNAL_STORAGE_PATH())){
             if(!path.startsWith(get(mActivity).getSDCardPath())){
                 if (file.isDirectory() && file.listFiles().length != 0) {
                     File[] files = file.listFiles();
@@ -239,7 +240,8 @@ public class FileFoldersLab {
     }
     public static void removeFileSD(String path){
         File f = new File(path);
-        if(f.exists()){
+        if(f.exists()
+                && f.getAbsolutePath().startsWith(FileFoldersLab.get(mActivity).getSDCardPath())){
             if(f.isFile()){
                 DocumentFile d1 = StorageHelper.get(mActivity).getDocumentFile(f);
                 d1.delete();
@@ -344,7 +346,12 @@ public class FileFoldersLab {
         StrictMode.setVmPolicy(builder.build());
         context.startActivityForResult(intent, FileExplorerFragment.REQUEST_SD_CARD_PATH);
     }
-
+    public static void getSDCardAccess(Activity context, int requestCode){
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+        context.startActivityForResult(intent, requestCode);
+    }
 
     public static String getFileMD5(File f) {
         StringBuilder result = new StringBuilder();

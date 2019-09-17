@@ -19,14 +19,14 @@ import com.tf.simplefilebrowser.helpers.ThumbnailsHelper;
 
 import java.io.File;
 
-public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+public class FileExplorerViewHolder extends RecyclerView.ViewHolder
+        implements View.OnClickListener, View.OnLongClickListener {
     private TextView mFileTitle;
     private ImageView mFileIcon;
-    public File mFile;
+    private File mFile;
     private ConstraintLayout mFileBackground;
     private FileExplorerFragment mFragment;
     private boolean loadedImage = false;
-    private FileExplorerViewHolder fevh;
     public FileExplorerViewHolder(LayoutInflater inflater, ViewGroup parent, FileExplorerFragment fragment) {
         super(inflater.inflate(R.layout.list_item_files, parent, false));
         mFileTitle = (TextView) itemView.findViewById(R.id.file_title_view);
@@ -35,7 +35,6 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         mFragment = fragment;
         itemView.setOnClickListener(this);
         itemView.setOnLongClickListener(this);
-        fevh = this;
     }
 
     public void recycle(){
@@ -47,15 +46,49 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         }
     }
 
+    /*@Override
+    public void onThumbnailsListChanged(String fileString) {
+        Log.d("TAG", "onThumbnailsListChanged: " + fileString + " _____ "+mFile.getAbsolutePath());
+        if(fileString.equals(mFile.getAbsolutePath())){
+            final String mimeType = FileFoldersLab.getFileMimeType(mFile);
+            Bitmap btm = null;
+            if((mimeType.startsWith("video/") || mimeType.startsWith("image/")) && !loadedImage){
+                if(mimeType.startsWith("video/")){
+                    btm = ThumbnailsHelper.get().getFileThumbnail(fileString);
+                }else if(mimeType.startsWith("image/")){
+                    btm = ThumbnailsHelper.get().getFileThumbnail(fileString);
+                }
+                final Bitmap finalBtm = btm;
+                mFragment.getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFileIcon.setImageBitmap(finalBtm);
+                        loadedImage = true;
+                    }
+                });
+            }
+        }
+    }*/
+    public File getFile(){
+        return mFile;
+    }
+    public void setIcon(final Bitmap btm){
+        mFragment.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mFileIcon.setImageBitmap(btm);
+            }
+        });
+    }
     public void createThumbnail(){
         final String mimeType = FileFoldersLab.getFileMimeType(mFile);
         if(mimeType != null){
             final Bitmap[] btm = {null};
             if((mimeType.startsWith("video/") || mimeType.startsWith("image/")) && !loadedImage){
                 if(mimeType.startsWith("video/")){
-                    btm[0] = ThumbnailsHelper.createThumbForVideo(mFile.getAbsolutePath());
+                    btm[0] = ThumbnailsHelper.get().createThumbForVideo(mFile.getAbsolutePath());
                 }else if(mimeType.startsWith("image/")){
-                    btm[0] = ThumbnailsHelper.createThumbForPic(mFile.getAbsolutePath());
+                    btm[0] = ThumbnailsHelper.get().createThumbForPic(mFile.getAbsolutePath());
                 }
                 mFragment.getActivity().runOnUiThread(new Runnable() {
                     @Override
@@ -68,6 +101,8 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         }
     }
     public void bind(final File file) {
+        //ThumbnailsHelper.get().addThumbnailsListListener(this);
+        ThumbnailsHelper.get().addFileInQueue(this, file);
         mFile = file;
         mFileTitle.setText(file.getName());
         if (file.isFile()){
@@ -82,6 +117,9 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
         }else{
             mFileBackground.setBackgroundResource(R.drawable.ripple_default);
         }
+        /*if(ThumbnailsHelper.get().getFileThumbnail(file.getPath()) != null){
+            mFileIcon.setImageBitmap(ThumbnailsHelper.get().getFileThumbnail(file.getPath()));
+        }*/
         mFileIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,10 +164,6 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder implements V
     }
     @Override
     public boolean onLongClick(View v) {
-        /*FragmentManager manager = mFragment.getFragmentManager();
-        AlertDialogHelper fragment = AlertDialogHelper.LongTouchMenu.newInstance(mFile.getAbsolutePath());
-        fragment.setTargetFragment(mFragment, AlertDialogHelper.LongTouchMenu.REQUEST_FILE_ACTION);
-        fragment.show(manager, FileExplorerFragment.DIALOG_FILE_ACTION);*/
         LongTouchMenuDialogCreator dialogCreator =
                 new LongTouchMenuDialogCreator(mFragment.getActivity(),mFile);
         dialogCreator.setActionListener(mFragment);

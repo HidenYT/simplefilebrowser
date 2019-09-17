@@ -35,6 +35,7 @@
         <activity android:name=".activities.InformationActivity">
 
         </activity>
+        <activity android:name=".activities.SettingsActivity"/>
         <provider
             android:authorities="com.tf.simplefilebrowser.provider"
             android:name="android.support.v4.content.FileProvider"

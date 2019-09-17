@@ -37,6 +37,7 @@ import android.widget.Toast;
 import android.widget.Toolbar;
 
 import com.tf.simplefilebrowser.ActionMenus.ActionSelectMenu;
+import com.tf.simplefilebrowser.activities.SettingsActivity;
 import com.tf.simplefilebrowser.alertdialogs.AlertDialogResultIDs;
 import com.tf.simplefilebrowser.alertdialogs.ChooseFileTypeDialogCreator;
 import com.tf.simplefilebrowser.alertdialogs.DeleteConfirmationDialogCreator;
@@ -52,6 +53,7 @@ import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.helpers.NotificationsLab;
 import com.tf.simplefilebrowser.helpers.SelectionHelper;
 import com.tf.simplefilebrowser.helpers.StorageHelper;
+import com.tf.simplefilebrowser.helpers.ThumbnailsHelper;
 import com.tf.simplefilebrowser.helpers.archives.ZipCompressor;
 import com.tf.simplefilebrowser.helpers.archives.zip.ZipProcess;
 import com.tf.simplefilebrowser.viewholders.FileExplorerViewHolder;
@@ -70,9 +72,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     public boolean mFilesActionActive;
     private ActionMode actionSelectActionMode;
     public Spinner mSpinner;
-    private static final int REQUEST_NEW_FILE_TYPE = 0;
-    private static final String DIALOG_NEW_FILE_TYPE = "NewFileType";
-    public static final String DIALOG_FILE_ACTION = "FileAction";
     private final int REQUEST_FILES_ACCESS = 6;
     public static final int REQUEST_SD_CARD_PATH = 7;
     private final String TAG = "TAG";
@@ -114,10 +113,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-        if(ContextCompat.checkSelfPermission(getActivity(),
-                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(getActivity(),
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+        if(!hasStoragePermissions()){
             ActivityCompat.requestPermissions(getActivity(),
                     new String[] {Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_FILES_ACCESS);
@@ -128,7 +124,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 R.layout.spinner_item);
         mFileExplorerFragment = this;
         mContentResolver = getActivity().getContentResolver();
-        FileFoldersLab.get(getActivity()).prepareEnvironment();
         mLayoutManager = new LinearLayoutManager(getActivity());
         final View view = inflater.inflate(R.layout.file_explorer_fragment, container,false);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.file_explorer_recycler_view);
@@ -165,7 +160,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     public void run() {
                         if(newState == RecyclerView.SCROLL_STATE_IDLE){
                             layoutIsDragging = false;
-                            createThumbnails();
+                            if(hasStoragePermissions()){
+                                //createThumbnails();
+                            }
                         }
                         if(newState == RecyclerView.SCROLL_STATE_DRAGGING){
                             layoutIsDragging = true;
@@ -176,8 +173,11 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
 
             }
         });
-        mRecyclerView.setHasFixedSize(true);
-        updateUI(true);
+       // mRecyclerView.setHasFixedSize(true);
+        if(hasStoragePermissions()){
+            FileFoldersLab.get(getActivity()).prepareEnvironment();
+            updateUI(true);
+        }
         return view;
     }
     @Override
@@ -193,22 +193,30 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     @Override
     public void onResume(){
         super.onResume();
-        updateUI(true);
+        if(hasStoragePermissions()){
+            updateUI(true);
+        }
     }
     @Override
     public void onDestroy() {
         super.onDestroy();
-        FileFoldersLab.get(getActivity()).removeTmpFolder();
+        if(hasStoragePermissions()) {
+            FileFoldersLab.get(getActivity()).removeTmpFolder();
+        }
     }
     @Override
     public void onDetach() {
         super.onDetach();
-        FileFoldersLab.get(getActivity()).removeTmpFolder();
+        if(hasStoragePermissions()) {
+            FileFoldersLab.get(getActivity()).removeTmpFolder();
+        }
     }
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        FileFoldersLab.get(getActivity()).removeTmpFolder();
+        if(hasStoragePermissions()){
+            FileFoldersLab.get(getActivity()).removeTmpFolder();
+        }
     }
     @Override
     public void onSaveInstanceState(Bundle save){
@@ -246,6 +254,10 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             Intent i = new Intent(getActivity(), InformationActivity.class);
             startActivity(i);
         }
+        if(item.getItemId() == R.id.settings_button){
+            Intent i = new Intent(getActivity(), SettingsActivity.class);
+            startActivity(i);
+        }
         return super.onOptionsItemSelected(item);
     }
     @Override
@@ -259,17 +271,36 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         if(requestCode == REQUEST_SD_CARD_PATH){
             if(data != null && takePermission(getActivity(), data.getData())){
                 Uri uri = data.getData();
+                assert uri != null;
                 FileFoldersLab.get(getActivity()).setSDCardUri(uri.toString());
             }
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == REQUEST_FILES_ACCESS){
+            if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                updateUI(false);
+            }else{
+                Toast t = Toast.makeText(getActivity(),
+                        R.string.files_access_permission_denied,Toast.LENGTH_LONG);
+                t.show();
+            }
+        }
+    }
+
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         if(position == 0){
             curStorage = StorageTypes.InternalStorage;
             FileFoldersLab.get(getActivity()).
                     setCurPath(FileFoldersLab.get(getActivity()).getINTERNAL_STORAGE_PATH());
-            updateUI(false);
+            Log.d(TAG, "3: " + FileFoldersLab.get(getActivity()).getCurPath());
+            if(hasStoragePermissions()){
+                updateUI(false);
+            }
         }else{
             if(StorageHelper.get(getActivity()).getAllPaths().size() > 1){
                 if(FileFoldersLab.get(getActivity()).getSDCardUri().equals("not_found")){
@@ -279,7 +310,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     curStorage = StorageTypes.SDCard;
                     FileFoldersLab.get(getActivity()).
                             setCurPath(FileFoldersLab.get(getActivity()).getSDCardPath());
-                    updateUI(false);
+                    if(hasStoragePermissions()){
+                        updateUI(false);
+                    }
                 }
             }else{
                 mSpinner.setSelection(0);
@@ -345,14 +378,73 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
-    public void updateUI(final boolean refresh) {
+    public void updateUI(final boolean refresh, final String... lastOpenedPath) {
         Log.d(TAG, "updateUI: started");
         stopThumbnailLoad();
-        getActivity().runOnUiThread(new Runnable() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    List<File> files = new LinkedList<>();
+                    if(sortMode == SortModes.ByName){
+                        files = FileFoldersLab.get(getActivity()).loadFilesFromPath();
+                    }else if(sortMode == SortModes.ByDate){
+                        List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
+                        files = FileFoldersLab.sortFilesByDate(f);
+                    }
+                    final String curPath = FileFoldersLab.get(getActivity()).getCurPath();
+
+                    final List<File> finalFiles = files;
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(finalFiles.size() == 0){
+                                mNoFilesTextView.setVisibility(View.VISIBLE);
+                            }else{
+                                mNoFilesTextView.setVisibility(View.GONE);
+                            }
+                            mCurrentPathTextView.setText(curPath);
+                            if(refresh){
+                                mAdapter = new FileExplorerAdapter(mFileExplorerFragment, finalFiles);
+                                mRecyclerView.setAdapter(mAdapter);
+                            } else {
+                                mAdapter.setFiles(finalFiles);
+                                mAdapter.notifyDataSetChanged();
+                            }
+
+                            if(FileFoldersLab.get(getActivity()).getCurPath().startsWith(
+                                    FileFoldersLab.get(getActivity()).getSDCardPath())){
+                                mSpinner.setSelection(1);
+                                curStorage = StorageTypes.SDCard;
+                            }
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    thumbnailThread = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //createThumbnails();
+                                        }
+                                    });
+                                    thumbnailThread.start();
+                                }
+                            }, 300);
+                        }
+                    });
+                }catch (Exception e){
+                    e.printStackTrace();
+                    if(lastOpenedPath.length>0){
+                        FileFoldersLab.get(getActivity()).setCurPath(lastOpenedPath[0]);
+                        updateUI(true);
+                    }
+                }
+            }
+        }).start();
+        /*getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 try{
-                    List files = new LinkedList();
+                    List<File> files = new LinkedList<>();
                     if(sortMode == SortModes.ByName){
                         files = FileFoldersLab.get(getActivity()).loadFilesFromPath();
                     }else if(sortMode == SortModes.ByDate){
@@ -382,6 +474,10 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
 
                 }catch (Exception e){
                     e.printStackTrace();
+                    if(lastOpenedPath.length>0){
+                        FileFoldersLab.get(getActivity()).setCurPath(lastOpenedPath[0]);
+                        updateUI(true);
+                    }
                 }
                 Log.d(TAG, "updateUI: preEnded");
                 new Handler().postDelayed(new Runnable() {
@@ -390,14 +486,14 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                         thumbnailThread = new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                createThumbnails();
+                                //createThumbnails();
                             }
                         });
                         thumbnailThread.start();
                     }
-                }, 50);
+                }, 300);
             }
-        });
+        });*/
         Log.d(TAG, "updateUI: ended");
     }
 
@@ -414,15 +510,15 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 thumbnailThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        createThumbnails();
+                        //createThumbnails();
                     }
                 });
                 thumbnailThread.start();
             }
-        }, 50);
+        }, 300);
     }
 
-    private boolean takePermission(Context context,Uri uri){
+    public static boolean takePermission(Context context,Uri uri){
         try {
             if(uri == null)
                 return false;
@@ -520,37 +616,52 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         dialogCreator.createDialog();
     }
 
-    private void createThumbnails(){
+    /*private void createThumbnails(){
         final int firstVisible = ((LinearLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
         final int lastVisible = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
-        for (int i = firstVisible; i <= lastVisible; i++) {
-            FileExplorerViewHolder vh = (FileExplorerViewHolder)
-                    mRecyclerView.findViewHolderForAdapterPosition(i);
-            if(vh != null)
-                vh.createThumbnail();
-            if(thumbnailThread.isInterrupted() || layoutIsDragging){
-                break;
+        Log.d(TAG, "createThumbnails: " +firstVisible + " " + lastVisible);
+        List<File> l = FileFoldersLab.get(getActivity()).loadFilesFromPath();
+        try{
+            for (int i = firstVisible; i <= lastVisible; i++) {
+                if(FileFoldersLab.getFileMimeType(l.get(i)) !=null){
+                    if(FileFoldersLab.getFileMimeType(l.get(i)).startsWith("image/")){
+                        ThumbnailsHelper.get().createThumbForPic(l.get(i).getAbsolutePath());
+                    }else if(FileFoldersLab.getFileMimeType(l.get(i)).startsWith("video/")){
+                        ThumbnailsHelper.get().createThumbForVideo(l.get(i).getAbsolutePath());
+                    }
+                }
+                if(thumbnailThread.isInterrupted() || layoutIsDragging){
+                    break;
+                }
             }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-    }
+    }*/
 
     public void onBackButtonPressed() {
+        String s = FileFoldersLab.get(getActivity()).getCurPath();
         layoutIsDragging = false;
         try {
-            FileFoldersLab.get(getActivity()).
-                    setCurPath(FileFoldersLab.
-                            get(getActivity()).prevPath());
             if(!mFilesActionActive){
                 SelectionHelper.get(getActivity()).getSelectedFiles().clear();
                 if(actionSelectActionMode != null){
                     actionSelectActionMode.finish();
                 }
             }
-            stopThumbnailLoad();
             updateUI(true);
+            FileFoldersLab.get(getActivity()).
+                    setCurPath(FileFoldersLab.
+                            get(getActivity()).prevPath());
+            Log.d(TAG, "onBackButtonPressed: " + FileFoldersLab.get(getActivity()).getCurPath());
+            stopThumbnailLoad();
+            updateUI(true, s);
             mRecyclerView.getLayoutManager().scrollToPosition(0);
         }catch (Exception e){
+            Log.d(TAG, "onBackButtonPressed: " + "HERRRRRRRRRRRRRRRRRRREEEEEEEEEEEEE");
             e.printStackTrace();
+            FileFoldersLab.get(getActivity()).setCurPath(s);
+            updateUI(true);
         }
     }
 
@@ -558,5 +669,12 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         if(thumbnailThread != null){
             thumbnailThread.interrupt();
         }
+    }
+
+    private boolean hasStoragePermissions(){
+        return ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 }

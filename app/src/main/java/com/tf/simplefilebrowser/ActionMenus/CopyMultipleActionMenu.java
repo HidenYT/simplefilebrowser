@@ -17,7 +17,7 @@ import java.util.LinkedList;
 
 public class CopyMultipleActionMenu extends ActionMenu {
     private FileExplorerFragment mFragment;
-    public CopyMultipleActionMenu(FileExplorerFragment fragment){
+    CopyMultipleActionMenu(FileExplorerFragment fragment){
         super(fragment);
         mFragment = fragment;
     }

@@ -1,6 +1,7 @@
 package com.tf.simplefilebrowser.ActionMenus;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,6 +60,7 @@ public class ActionSelectMenu implements ActionMode.Callback {
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         fragment.setActionSelectActionMode(null);
+        Log.d("TAG", "onDestroyActionMode: " + deleteSelection + " "+ (mMenuItem==null));
         if(mMenuItem == null && deleteSelection)
             SelectionHelper.get(activity).getSelectedFiles().clear();
         mMenuItem = null;

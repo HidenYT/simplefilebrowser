@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.tf.simplefilebrowser.helpers.FileFoldersLab;
 import com.tf.simplefilebrowser.helpers.StorageHelper;
-import com.tf.simplefilebrowser.helpers.ZipArchiveHelper;
 import com.tf.simplefilebrowser.helpers.archives.zip.ZipProcess;
 
 import java.io.BufferedInputStream;
@@ -25,8 +24,8 @@ import java.util.zip.ZipOutputStream;
 public class ZipCompressor implements Runnable, ZipProcess {
     private static final String TAG = "TAG";
     private final ZipCompressor initObject;
-    public int totalFilesAmount;
-    public int compressedFilesAmount;
+    private int totalFilesAmount;
+    private int compressedFilesAmount;
 
     private LinkedList<String> files;
     private String zipFile;
@@ -122,9 +121,7 @@ public class ZipCompressor implements Runnable, ZipProcess {
                 zos.finish();
                 zos.close();
             }
-        }catch (FileNotFoundException e){
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (IOException e){
             e.printStackTrace();
         }
     }

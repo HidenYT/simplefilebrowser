@@ -2,8 +2,6 @@ package com.tf.simplefilebrowser.helpers.archives.zip;
 
 import android.util.Log;
 
-import com.tf.simplefilebrowser.helpers.ZipArchiveHelper;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
