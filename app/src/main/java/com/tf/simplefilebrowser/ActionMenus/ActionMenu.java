@@ -90,12 +90,23 @@ public abstract class ActionMenu implements ActionMode.Callback {
         }
         if(item.isCheckable() && !item.isChecked()){
             if(item.getItemId() == R.id.menu_sort_name){
-                fragment.sortMode = FileExplorerFragment.SortModes.ByName;
+                fragment.setSortMode(FileExplorerFragment.SortModes.ByName);
                 item.setChecked(true);
                 fragment.updateUI(false);
             }
             if(item.getItemId() == R.id.menu_sort_date){
-                fragment.sortMode = FileExplorerFragment.SortModes.ByDate;
+                fragment.setSortMode(FileExplorerFragment.SortModes.ByDate);
+                item.setChecked(true);
+                fragment.updateUI(false);
+            }
+        }
+        if(item.getItemId() == R.id.menu_sort_desc){
+            if(item.isChecked()){
+                fragment.setDescendingSortMode(false);
+                item.setChecked(false);
+                fragment.updateUI(false);
+            }else{
+                fragment.setDescendingSortMode(true);
                 item.setChecked(true);
                 fragment.updateUI(false);
             }

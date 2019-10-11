@@ -11,6 +11,7 @@ import com.tf.simplefilebrowser.helpers.PreferencesHelper;
 import com.tf.simplefilebrowser.viewholders.FileExplorerViewHolder;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
 public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHolder>  {
@@ -19,7 +20,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHo
     public FileExplorerAdapter(FileExplorerFragment fragment, List<File> files){
         mFiles = files;
         mFragment = fragment;
-        filterFiles();
+        mFiles = filterFiles();
     }
 
     @Override
@@ -47,17 +48,23 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerViewHo
     }
     public void setFiles(List<File> files){
         mFiles = files;
-        filterFiles();
+        mFiles = filterFiles();
     }
 
-    private void filterFiles(){
+    private List<File> filterFiles(){
+
+        List<File> filesCopy = mFiles.subList(0, mFiles.size());
+        LinkedList<File> newFiles = new LinkedList<>();
         if(!PreferencesHelper.getInstance(mFragment.getActivity()).isDisplayingHiddenFiles()){
             for (int i = 0; i < mFiles.size(); i++){
-                if(mFiles.get(i).getName().startsWith(".")){
-                    mFiles.remove(mFiles.get(i));
+                Log.d("TAG", "filterFiles: " + mFiles.get(i).getName());
+                if(!filesCopy.get(i).getName().startsWith(".")){
+                    newFiles.add(filesCopy.get(i));
                 }
             }
+            return newFiles;
         }
+        return filesCopy;
     }
 
 }

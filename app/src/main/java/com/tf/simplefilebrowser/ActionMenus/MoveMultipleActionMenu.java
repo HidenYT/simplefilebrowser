@@ -16,10 +16,14 @@ import java.io.File;
 import java.util.LinkedList;
 
 public class MoveMultipleActionMenu extends ActionMenu {
+    private final String movingInProgress;
+    private final String movingFilesText;
     private FileExplorerFragment mFragment;
     MoveMultipleActionMenu(FileExplorerFragment fragment){
         super(fragment);
         mFragment = fragment;
+        movingFilesText = mFragment.getString(R.string.multiple_files_copying);
+        movingInProgress = mFragment.getString(R.string.copying_in_progress);
     }
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -51,8 +55,8 @@ public class MoveMultipleActionMenu extends ActionMenu {
                 @Override
                 public void run() {
                     NotificationsLab.get(mFragment.getActivity()).createProgressMultipleFiles(
-                            Thread.currentThread().getId(), arr, dests, "Moving files",
-                            "Moving in progress",mFragment.getActivity()
+                            Thread.currentThread().getId(), arr, dests, movingFilesText,
+                            movingInProgress,mFragment.getActivity()
                     );
                     FileActionsHelper fa = new FileActionsHelper(mFragment.getContentResolver());
                     for(String k : arr){
@@ -83,7 +87,7 @@ public class MoveMultipleActionMenu extends ActionMenu {
                         else
                             FileFoldersLab.removeFile(k);
                     }
-
+                    mFragment.updateUI(false);
                 }
             }).start();
         }

@@ -2,34 +2,39 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:title="Paste"
+        android:title="@string/paste_menu_paste"
         android:id="@+id/paste_button"
         android:icon="@drawable/ic_paste_button"
         app:showAsAction="ifRoom|withText"/>
-    <item android:title="More"
+    <item android:title="@string/paste_menu_more"
         app:showAsAction="always"
         android:icon="@drawable/ic_more_button_dark">
         <menu>
-            <item android:title="Internal storage"
+            <item android:title="@string/paste_menu_internal_storage"
                 android:id="@+id/action_bar_internal_storage"
                 app:showAsAction="always"
                 android:icon="@drawable/ic_internal_storage_button"/>
-            <item android:title="SD card"
+            <item android:title="@string/paste_menu_sd_card"
                 android:icon="@drawable/ic_sd_card_button"
                 android:id="@+id/action_bar_sd_card"
                 app:showAsAction="always"/>
             <item
-                android:title="Sort"
+                android:title="@string/three_dots_sort"
                 app:showAsAction="always"
                 android:icon="@drawable/ic_sorting_button"
                 android:id="@+id/menu_sort">
                 <menu>
                     <group android:checkableBehavior="single">
-                        <item android:title="By name"
+                        <item android:title="@string/three_dots_sort_by_name"
                             android:checked="true"
                             android:id="@+id/menu_sort_name"/>
-                        <item android:title="By date"
+                        <item android:title="@string/three_dots_sort_by_date"
                             android:id="@+id/menu_sort_date"/>
+                    </group>
+                    <group android:checkableBehavior="all">
+                        <item android:title="@string/three_dots_sort_descending"
+                            android:checked="false"
+                            android:id="@+id/menu_sort_desc"/>
                     </group>
                 </menu>
             </item>

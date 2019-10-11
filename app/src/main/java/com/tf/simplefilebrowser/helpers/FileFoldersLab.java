@@ -100,14 +100,14 @@ public class FileFoldersLab {
         for(int i =0; i < files.length; i++){
             mFileFolders.add(files[i]);
         }
-        mFileFolders = sortFilesList(mFileFolders);
+        mFileFolders = sortFilesByName(mFileFolders);
         return mFileFolders;
     }
     public List<File> loadFilesFromPath(String path) {
         File folder = new File(path);
         File[] files = folder.listFiles();
         List<File> mFileFolders = new LinkedList<>(Arrays.asList(files));
-        mFileFolders = sortFilesList(mFileFolders);
+        mFileFolders = sortFilesByName(mFileFolders);
         return mFileFolders;
     }
 
@@ -118,7 +118,7 @@ public class FileFoldersLab {
     }
 
     public static List<File> sortFilesByDate(List<File> files){
-        List<File> fileList = files;
+        List<File> fileList = new LinkedList<>(files);
         Collections.sort(fileList, new Comparator<File>() {
             @Override
             public int compare(File file, File t1) {
@@ -126,21 +126,22 @@ public class FileFoldersLab {
                         .compareTo(Long.toString(t1.lastModified()));
             }
         });
+        fileList = sortFilesByBeingFile(fileList);
         return fileList;
     }
 
     public String prevPath() {
         String[] pathArray = mCurPath.split("/");
-        String finPath = "";
+        StringBuilder finPath = new StringBuilder();
         pathArray[pathArray.length - 1] = "";
         for (int i = 0; i < pathArray.length; i++) {
             if (pathArray[i] != "")
-                finPath += pathArray[i] + "/";
+                finPath.append(pathArray[i]).append("/");
         }
-        return finPath;
+        return finPath.toString();
     }
     public static LinkedList<ZipEntry> sortZipEntries(LinkedList<ZipEntry> entries) {
-        LinkedList<ZipEntry> fileFolder = entries;
+        LinkedList<ZipEntry> fileFolder = new LinkedList<>(entries);
         Collections.sort(fileFolder, new Comparator<ZipEntry>() {
             @Override
             public int compare(ZipEntry o1, ZipEntry o2) {
@@ -148,17 +149,12 @@ public class FileFoldersLab {
                         compareTo(o2.getName().toLowerCase());
             }
         });
-        Collections.sort(fileFolder, new Comparator<ZipEntry>() {
-            @Override
-            public int compare(ZipEntry o1, ZipEntry o2) {
-                return Boolean.toString(!o1.isDirectory()).compareTo(Boolean.toString(!o2.isDirectory()));
-            }
-        });
+        fileFolder = sortZEByBeingFile(fileFolder);
         return fileFolder;
     }
 
-    public static List<File> sortFilesList(List<File> fileFolders) {
-        List<File> fileFolder = fileFolders;
+    public static List<File> sortFilesByName(List<File> fileFolders) {
+        List<File> fileFolder = new LinkedList<>(fileFolders);
         Collections.sort(fileFolder, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
@@ -166,15 +162,29 @@ public class FileFoldersLab {
                         compareTo(o2.getName().toLowerCase());
             }
         });
-        Collections.sort(fileFolder, new Comparator<File>() {
+        fileFolder = sortFilesByBeingFile(fileFolder);
+        return fileFolder;
+    }
+    private static List<File> sortFilesByBeingFile(List<File> list){
+        List<File> l = new LinkedList<>(list);
+        Collections.sort(l, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
                 return Boolean.toString(o1.isFile()).compareTo(Boolean.toString(o2.isFile()));
             }
         });
-        return fileFolder;
+        return l;
     }
-
+    private static LinkedList<ZipEntry> sortZEByBeingFile(LinkedList<ZipEntry> list){
+        LinkedList<ZipEntry> l = new LinkedList<>(list);
+        Collections.sort(l, new Comparator<ZipEntry>() {
+            @Override
+            public int compare(ZipEntry o1, ZipEntry o2) {
+                return Boolean.toString(!o1.isDirectory()).compareTo(Boolean.toString(!o2.isDirectory()));
+            }
+        });
+        return l;
+    }
     public void createFile(String name) {
         Log.d(TAG, "createFile: " + mCurPath);
         File file = new File(mCurPath + File.separator + name);

@@ -2,22 +2,27 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:title="Sort"
+        android:title="@string/three_dots_sort"
         app:showAsAction="always"
         android:icon="@drawable/ic_sorting_button"
         android:id="@+id/menu_sort">
         <menu>
             <group android:checkableBehavior="single">
-                <item android:title="By name"
+                <item android:title="@string/three_dots_sort_by_name"
                     android:checked="true"
                     android:id="@+id/menu_sort_name"/>
-                <item android:title="By date"
+                <item android:title="@string/three_dots_sort_by_date"
                     android:id="@+id/menu_sort_date"/>
+            </group>
+            <group android:checkableBehavior="all">
+                <item android:title="@string/three_dots_sort_descending"
+                    android:checked="false"
+                    android:id="@+id/menu_sort_desc"/>
             </group>
         </menu>
     </item>
     <item
-        android:title="Select all"
+        android:title="@string/three_dots_select_all"
         app:showAsAction="always"
         android:icon="@drawable/ic_select_all_button"
         android:id="@+id/menu_select_all"/>
@@ -27,7 +32,7 @@
         android:icon="@drawable/ic_select_all_button"
         android:id="@+id/settings_button"/>
     <item
-        android:title="About &amp; donate"
+        android:title="@string/three_dots_about"
         app:showAsAction="always"
         android:id="@+id/about_donate"/>
 </menu>

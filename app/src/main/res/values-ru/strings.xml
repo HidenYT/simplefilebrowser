@@ -10,8 +10,12 @@
     <string name="moving_folder">Перемещение папки</string>
     <string name="copying_file">Копирование файла</string>
     <string name="copying_folder">Копирование папки</string>
+    <string name="compression_files">Сжатие файлов</string>
     <string name="moving_in_progress">Перемещение продолжается</string>
     <string name="copying_in_progress">Копирование продолжается</string>
+    <string name="compression_in_progress">Сжатие продолжается</string>
+    <string name="multiple_files_copying">Копирование файлов</string>
+    <string name="multiple_files_moving">Перемещение файлов</string>
 
     <string name="copy_file_string">Копировать</string>
     <string name="move_file_string">Переместить</string>
@@ -52,13 +56,14 @@
         <item id="internal_option">Внутренняя память</item>
         <item id="sd_card_option">SD карта</item>
     </string-array>
-    <!--Warnings-->
-    <string name="archive_exists">Архив с этим именем уже существует!</string>
 
     <!--Toasts-->
+    <!--Warnings-->
     <string name="files_access_permission_denied">Пожалуйста, разрешите приложению доступ к хранилищу.</string>
     <string name="file_already_exists">Файл с таким именем уже существует.</string>
     <string name="folder_already_exists">Папка с таким именем уже существует.</string>
+    <string name="archive_exists">Архив с этим именем уже существует!</string>
+    <!--/Warnings-->
     <!--/Toasts-->
 
     <!--Settings-->
@@ -68,4 +73,28 @@
     <string name="settings_display_hidden_files">Показывать скрытые файлы</string>
     <string name="settings_display_hidden_files_hint">Показывать файлы и папки, начинающиеся с \".\" .</string>
     <!--/Settings-->
+
+    <!--Three dots menu-->
+    <string name="three_dots_sort">Сортировка</string>
+    <string name="three_dots_select_all">Выбрать всё</string>
+    <string name="three_dots_about">О приложении &amp; поддержать</string>
+    <!--Sort types-->
+    <string name="three_dots_sort_by_name">По имени</string>
+    <string name="three_dots_sort_by_date">По дате</string>
+    <string name="three_dots_sort_descending">По убыванию</string>
+    <!--/Sort types-->
+    <!--/Three dots menu-->
+
+    <!--Paste menu-->
+    <string name="paste_menu_sd_card">SD карта</string>
+    <string name="paste_menu_internal_storage">Внутренняя память</string>
+    <string name="paste_menu_paste">Вставить</string>
+    <string name="paste_menu_more">Ещё</string>
+    <!--/Paste menu-->
+
+    <!--Extraction menu-->
+    <string name="extract_menu_extract_selected_files">Распаковать выделенные файлы</string>
+<!--    <string name="extract_menu_select_all_files">Выбрать все файлы</string>-->
+    <!--/Extraction menu-->
+
 </resources>

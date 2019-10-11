@@ -59,6 +59,7 @@ import com.tf.simplefilebrowser.helpers.archives.zip.ZipProcess;
 import com.tf.simplefilebrowser.viewholders.FileExplorerViewHolder;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -86,12 +87,10 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         ByDate,
         BySize
     }
-    public SortModes sortMode = SortModes.ByName;
+    private SortModes sortMode = SortModes.ByName;
+    private boolean descendingSortMode = false;
     private StorageTypes curStorage = StorageTypes.InternalStorage;
     private final String SAVED_INSTANCE_CURRENT_PATH = "CurrentPath";
-    private boolean layoutIsDragging = false;
-
-    private Thread thumbnailThread;
 
     public StorageTypes getCurStorage(){
         return curStorage;
@@ -149,36 +148,17 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         getActivity().setActionBar(mToolbar);
         getActivity().getActionBar().setDisplayShowTitleEnabled(false);
         setHasOptionsMenu(true);
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, final int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                Log.d(TAG, "onScrollStateChanged: ");
-                stopThumbnailLoad();
-                thumbnailThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(newState == RecyclerView.SCROLL_STATE_IDLE){
-                            layoutIsDragging = false;
-                            if(hasStoragePermissions()){
-                                //createThumbnails();
-                            }
-                        }
-                        if(newState == RecyclerView.SCROLL_STATE_DRAGGING){
-                            layoutIsDragging = true;
-                        }
-                    }
-                });
-                thumbnailThread.start();
-
-            }
-        });
-       // mRecyclerView.setHasFixedSize(true);
         if(hasStoragePermissions()){
             FileFoldersLab.get(getActivity()).prepareEnvironment();
             updateUI(true);
         }
         return view;
+    }
+    public void setSortMode(SortModes mode){
+        this.sortMode = mode;
+    }
+    public void setDescendingSortMode(boolean descendingSortMode) {
+        this.descendingSortMode = descendingSortMode;
     }
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -258,6 +238,17 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             Intent i = new Intent(getActivity(), SettingsActivity.class);
             startActivity(i);
         }
+        if(item.getItemId() == R.id.menu_sort_desc){
+            if(item.isChecked()){
+                descendingSortMode = false;
+                item.setChecked(false);
+                updateUI(false);
+            }else{
+                descendingSortMode = true;
+                item.setChecked(true);
+                updateUI(false);
+            }
+        }
         return super.onOptionsItemSelected(item);
     }
     @Override
@@ -269,6 +260,7 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             updateUI(false);
         }
         if(requestCode == REQUEST_SD_CARD_PATH){
+            Log.d(TAG, "onActivityResult: ---------------------------------------" );
             if(data != null && takePermission(getActivity(), data.getData())){
                 Uri uri = data.getData();
                 assert uri != null;
@@ -297,11 +289,11 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             curStorage = StorageTypes.InternalStorage;
             FileFoldersLab.get(getActivity()).
                     setCurPath(FileFoldersLab.get(getActivity()).getINTERNAL_STORAGE_PATH());
-            Log.d(TAG, "3: " + FileFoldersLab.get(getActivity()).getCurPath());
             if(hasStoragePermissions()){
                 updateUI(false);
             }
         }else{
+            Log.d(TAG, "onItemSelected: " + FileFoldersLab.get(getActivity()).getSDCardUri());
             if(StorageHelper.get(getActivity()).getAllPaths().size() > 1){
                 if(FileFoldersLab.get(getActivity()).getSDCardUri().equals("not_found")){
                     FileFoldersLab.getSDCardAccess(mFileExplorerFragment);
@@ -348,6 +340,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     FileFoldersLab.removeFileSD(s);
                 }
             }
+            if(actionSelectActionMode != null){
+                actionSelectActionMode.finish();
+            }
         }
         if(resultID == AlertDialogResultIDs.COPY_FILE){
             getActivity().startActionMode(new CopyActionMenu(this,
@@ -371,7 +366,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 doc.renameTo(result.getString(LongTouchMenuDialogCreator.FILE_NEW_NAME_ARG));
             }
         }
-
         updateUI(false);
     }
     @Override
@@ -380,7 +374,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
     }
     public void updateUI(final boolean refresh, final String... lastOpenedPath) {
         Log.d(TAG, "updateUI: started");
-        stopThumbnailLoad();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -391,6 +384,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     }else if(sortMode == SortModes.ByDate){
                         List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
                         files = FileFoldersLab.sortFilesByDate(f);
+                    }
+                    if(descendingSortMode){
+                        Collections.reverse(files);
                     }
                     final String curPath = FileFoldersLab.get(getActivity()).getCurPath();
 
@@ -417,18 +413,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                                 mSpinner.setSelection(1);
                                 curStorage = StorageTypes.SDCard;
                             }
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    thumbnailThread = new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            //createThumbnails();
-                                        }
-                                    });
-                                    thumbnailThread.start();
-                                }
-                            }, 300);
                         }
                     });
                 }catch (Exception e){
@@ -440,61 +424,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 }
             }
         }).start();
-        /*getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    List<File> files = new LinkedList<>();
-                    if(sortMode == SortModes.ByName){
-                        files = FileFoldersLab.get(getActivity()).loadFilesFromPath();
-                    }else if(sortMode == SortModes.ByDate){
-                        List<File> f = FileFoldersLab.loadFilesNoSort(FileFoldersLab.get(getActivity()).getCurPath());
-                        files = FileFoldersLab.sortFilesByDate(f);
-                    }
-                    if(files.size() == 0){
-                        mNoFilesTextView.setVisibility(View.VISIBLE);
-                    }else{
-                        mNoFilesTextView.setVisibility(View.GONE);
-                    }
-                    String curPath = FileFoldersLab.get(getActivity()).getCurPath();
-                    mCurrentPathTextView.setText(curPath);
-                    if(refresh){
-                        mAdapter = new FileExplorerAdapter(mFileExplorerFragment, files);
-                        mRecyclerView.setAdapter(mAdapter);
-                    } else {
-                        mAdapter.setFiles(files);
-                        mAdapter.notifyDataSetChanged();
-                    }
-
-                    if(FileFoldersLab.get(getActivity()).getCurPath().startsWith(
-                            FileFoldersLab.get(getActivity()).getSDCardPath())){
-                        mSpinner.setSelection(1);
-                        curStorage = StorageTypes.SDCard;
-                    }
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                    if(lastOpenedPath.length>0){
-                        FileFoldersLab.get(getActivity()).setCurPath(lastOpenedPath[0]);
-                        updateUI(true);
-                    }
-                }
-                Log.d(TAG, "updateUI: preEnded");
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        thumbnailThread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                //createThumbnails();
-                            }
-                        });
-                        thumbnailThread.start();
-                    }
-                }, 300);
-            }
-        });*/
-        Log.d(TAG, "updateUI: ended");
     }
 
     public void updateUInoDataChanged(){
@@ -504,18 +433,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                 mAdapter.notifyDataSetChanged();
             }
         });
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                thumbnailThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //createThumbnails();
-                    }
-                });
-                thumbnailThread.start();
-            }
-        }, 300);
     }
 
     public static boolean takePermission(Context context,Uri uri){
@@ -560,8 +477,8 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                                     null, curPath, mContentResolver, null);
                             NotificationsLab.get(getActivity()).createZipProgress(
                                     Thread.currentThread().getId(), r,
-                                    "Compressing files",
-                                    "Compression in progress");
+                                    getString(R.string.compression_files),
+                                    getString(R.string.compression_in_progress));
                             r.run();
                         }else{
                             getActivity().runOnUiThread(new Runnable() {
@@ -616,32 +533,9 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
         dialogCreator.createDialog();
     }
 
-    /*private void createThumbnails(){
-        final int firstVisible = ((LinearLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
-        final int lastVisible = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
-        Log.d(TAG, "createThumbnails: " +firstVisible + " " + lastVisible);
-        List<File> l = FileFoldersLab.get(getActivity()).loadFilesFromPath();
-        try{
-            for (int i = firstVisible; i <= lastVisible; i++) {
-                if(FileFoldersLab.getFileMimeType(l.get(i)) !=null){
-                    if(FileFoldersLab.getFileMimeType(l.get(i)).startsWith("image/")){
-                        ThumbnailsHelper.get().createThumbForPic(l.get(i).getAbsolutePath());
-                    }else if(FileFoldersLab.getFileMimeType(l.get(i)).startsWith("video/")){
-                        ThumbnailsHelper.get().createThumbForVideo(l.get(i).getAbsolutePath());
-                    }
-                }
-                if(thumbnailThread.isInterrupted() || layoutIsDragging){
-                    break;
-                }
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }*/
 
     public void onBackButtonPressed() {
         String s = FileFoldersLab.get(getActivity()).getCurPath();
-        layoutIsDragging = false;
         try {
             if(!mFilesActionActive){
                 SelectionHelper.get(getActivity()).getSelectedFiles().clear();
@@ -654,7 +548,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
                     setCurPath(FileFoldersLab.
                             get(getActivity()).prevPath());
             Log.d(TAG, "onBackButtonPressed: " + FileFoldersLab.get(getActivity()).getCurPath());
-            stopThumbnailLoad();
             updateUI(true, s);
             mRecyclerView.getLayoutManager().scrollToPosition(0);
         }catch (Exception e){
@@ -662,12 +555,6 @@ public class FileExplorerFragment extends Fragment implements AdapterView.OnItem
             e.printStackTrace();
             FileFoldersLab.get(getActivity()).setCurPath(s);
             updateUI(true);
-        }
-    }
-
-    public void stopThumbnailLoad(){
-        if(thumbnailThread != null){
-            thumbnailThread.interrupt();
         }
     }
 

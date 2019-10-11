@@ -6,6 +6,6 @@ A simple file manager for android
 - Work with .zip archives (create, view archives; open and extract compressed files)
 
 ```A lot of other features will be added in future.```
-## Upcoming changes
+## Upcoming updates
 - Adding support for other archive types (.rar and .7z).
 - Improvement of the application performance.

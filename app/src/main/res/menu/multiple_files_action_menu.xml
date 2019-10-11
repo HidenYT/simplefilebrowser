@@ -6,12 +6,12 @@
 
     <item android:icon="@drawable/ic_copy_button"
         android:id="@+id/copy_button_action_menu"
-        android:title="Copy files"
+        android:title="@string/copy_file_string"
         app:showAsAction="always"/>
 
     <item android:icon="@drawable/ic_cut_button"
         android:id="@+id/move_button_action_menu"
-        android:title="Cut files"
+        android:title="@string/move_file_string"
         app:showAsAction="always"/>
     <item android:icon="@drawable/ic_more_button_dark"
         android:iconTint="@color/colorPrimary"
@@ -20,12 +20,12 @@
         <menu>
             <item android:icon="@drawable/ic_compress_button"
                 android:id="@+id/compress_button_action_menu"
-                android:title="Compress files"
+                android:title="@string/compress_file_string"
                 app:showAsAction="always"/>
 
             <item android:icon="@drawable/ic_delete_button"
                 android:id="@+id/delete_button_action_menu"
-                android:title="Delete files"
+                android:title="@string/delete_file_string"
                 app:showAsAction="always"/>
         </menu>
     </item>

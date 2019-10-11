@@ -101,7 +101,6 @@ public class FileExplorerViewHolder extends RecyclerView.ViewHolder
         }
     }
     public void bind(final File file) {
-        //ThumbnailsHelper.get().addThumbnailsListListener(this);
         ThumbnailsHelper.get().addFileInQueue(this, file);
         mFile = file;
         mFileTitle.setText(file.getName());

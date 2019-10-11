@@ -69,7 +69,6 @@ public class CopyActionMenu extends ActionMenu {
                         }
                     }
                     mFragment.updateUI(false);
-
                 }
             }).start();
         }

@@ -5,12 +5,16 @@
     <string name="file_type_sting">File</string>
     <string name="folder_type_sting">Folder</string>
     <string name="archive_name">Archive name</string>
-    <string name="moving_file">Moving file</string>
-    <string name="moving_folder">Moving folder</string>
-    <string name="copying_file">Copying file</string>
-    <string name="copying_folder">Copying folder</string>
+    <string name="moving_file">File moving</string>
+    <string name="moving_folder">Folder moving</string>
+    <string name="copying_file">File copying</string>
+    <string name="copying_folder">Folder copying</string>
+    <string name="compression_files">Files compression</string>
     <string name="moving_in_progress">Moving in progress</string>
     <string name="copying_in_progress">Copying in progress</string>
+    <string name="compression_in_progress">Compression in progress</string>
+    <string name="multiple_files_copying">Files copying</string>
+    <string name="multiple_files_moving">Files moving</string>
 
     <string name="copy_file_string">Copy</string>
     <string name="move_file_string">Move</string>
@@ -18,7 +22,6 @@
     <string name="rename_file_string">Rename</string>
     <string name="info_file_string">Information</string>
     <string name="compress_file_string">Compress</string>
-
 
     <string name="settings_tile">Settings</string>
     <!--Dialogs                            -->
@@ -51,14 +54,15 @@
         <item id="sd_card_option">SD card</item>
     </string-array>
 
-    <!--Warnings-->
-    <string name="archive_exists">This archive already exists!</string>
 
 
     <!--Toasts-->
+    <!--Warnings-->
     <string name="files_access_permission_denied">Please, allow Simple file browser to access Storage.</string>
+    <string name="archive_exists">This archive already exists!</string>
     <string name="file_already_exists">A file with this name already exists.</string>
     <string name="folder_already_exists">A folder with this name already exists.</string>
+    <!--Warnings-->
     <!--/Toasts-->
 
     <!--Settings-->
@@ -68,5 +72,28 @@
     <string name="settings_display_hidden_files">Show hidden files</string>
     <string name="settings_display_hidden_files_hint">Show files and folders starting from \".\" .</string>
     <!--/Settings-->
+
+    <!--Three dots menu-->
+    <string name="three_dots_sort">Sort</string>
+    <string name="three_dots_select_all">Select all</string>
+    <string name="three_dots_about">About &amp; donate</string>
+    <!--Sort types-->
+    <string name="three_dots_sort_by_name">By name</string>
+    <string name="three_dots_sort_by_date">By date</string>
+    <string name="three_dots_sort_descending">Descending</string>
+    <!--/Sort types-->
+    <!--/Three dots menu-->
+
+    <!--Paste menu-->
+    <string name="paste_menu_sd_card">SD card</string>
+    <string name="paste_menu_internal_storage">Internal storage</string>
+    <string name="paste_menu_paste">Paste</string>
+    <string name="paste_menu_more">More</string>
+    <!--/Paste menu-->
+
+    <!--Extraction menu-->
+    <string name="extract_menu_extract_selected_files">Extract selected files</string>
+    <!--<string name="extract_menu_select_all_files">Select all files</string>-->
+    <!--/Extraction menu-->
 
 </resources>
