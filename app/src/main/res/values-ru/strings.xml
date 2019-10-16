@@ -97,4 +97,8 @@
 <!--    <string name="extract_menu_select_all_files">Выбрать все файлы</string>-->
     <!--/Extraction menu-->
 
+    <!--Activities    -->
+    <string name="activity_zip_archive_preview_title">Предпросмотр архива</string>
+    <string name="activity_information_title">О приложении</string>
+    <!--/Activities    -->
 </resources>

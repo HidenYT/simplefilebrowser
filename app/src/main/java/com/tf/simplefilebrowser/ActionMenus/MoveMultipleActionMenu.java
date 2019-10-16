@@ -62,7 +62,7 @@ public class MoveMultipleActionMenu extends ActionMenu {
                     for(String k : arr){
                         if(new File(k).isFile()){
                             FileActionsHelper.copyFileClass cfc = fa.new copyFileClass(
-                                    new File(k), finalPath, mFragment.getActivity());
+                                    new File(k), finalPath, mFragment.getActivity(), true);
                             if(getStorage() == StorageTypes.InternalStorage){
                                 cfc.copyFile.run();
                             }else {
@@ -72,7 +72,7 @@ public class MoveMultipleActionMenu extends ActionMenu {
                             }
                         }else{
                             FileActionsHelper.copyFolderClass cfc = fa.new copyFolderClass(
-                                    new File(k), finalPath, mFragment.getActivity());
+                                    new File(k), finalPath, mFragment.getActivity(), true);
                             if(getStorage() == StorageTypes.InternalStorage){
                                 cfc.copyFolder.run();
                             }
@@ -82,10 +82,10 @@ public class MoveMultipleActionMenu extends ActionMenu {
                                 }
                             }
                         }
-                        if(k.startsWith(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath()))
+                        /*if(k.startsWith(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath()))
                             FileFoldersLab.removeFileSD(k);
                         else
-                            FileFoldersLab.removeFile(k);
+                            FileFoldersLab.removeFile(k);*/
                     }
                     mFragment.updateUI(false);
                 }

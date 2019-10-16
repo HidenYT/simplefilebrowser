@@ -96,4 +96,9 @@
     <!--<string name="extract_menu_select_all_files">Select all files</string>-->
     <!--/Extraction menu-->
 
+    <!--Activities    -->
+    <string name="activity_zip_archive_preview_title">Archive preview</string>
+    <string name="activity_information_title">About app</string>
+    <!--/Activities    -->
+
 </resources>

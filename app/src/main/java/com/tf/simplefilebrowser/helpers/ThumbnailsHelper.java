@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ThumbnailsHelper {
-    private ExecutorService threadPool = Executors.newFixedThreadPool(6);
+    private ExecutorService threadPool = Executors.newFixedThreadPool(2);
     private HashMap<String, FileExplorerViewHolder> addedInQueue = new HashMap<>();
     private static ThumbnailsHelper thumbnailsHelper;
     public static ThumbnailsHelper get(){
@@ -44,25 +44,6 @@ public class ThumbnailsHelper {
         //notifyAllListeners(videoPath);
         return btm;
     }
-    /*private static void notifyAllListeners(String filePath){
-        Log.d("TAG", "!!!!!!!!!!!!!!!notifyAllListeners: " + thumbnailsListChangeListeners.size());
-        for(int i = 0; i<thumbnailsListChangeListeners.size();i++){
-            if(thumbnailsListChangeListeners.get(i) != null){
-                thumbnailsListChangeListeners.get(i).onThumbnailsListChanged(filePath);
-            }
-        }
-    }
-    public void addThumbnailsListListener(ThumbnailsListChangeListener listener){
-        if(!thumbnailsListChangeListeners.contains(listener)){
-            thumbnailsListChangeListeners.add(listener);
-        }
-    }
-
-    public Bitmap getFileThumbnail(String filePath){
-        if(generatedThumbnails.containsKey(filePath))
-            return generatedThumbnails.get(filePath);
-        else return null;
-    }*/
 
     public void addFileInQueue(final FileExplorerViewHolder vh, final File file){
         String p = file.getAbsolutePath();

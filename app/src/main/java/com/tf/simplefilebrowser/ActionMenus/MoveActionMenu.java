@@ -53,7 +53,8 @@ public class MoveActionMenu extends ActionMenu {
                                 mFragment.getString(R.string.moving_in_progress), mFragment.getActivity());
                         FileActionsHelper.copyFileClass cfc = fa.new copyFileClass(
                                 new File(initFilePath), FileFoldersLab.get(
-                                        mFragment.getActivity()).getCurPath(), mFragment.getActivity());
+                                        mFragment.getActivity()).getCurPath(),
+                                mFragment.getActivity(), true);
                         if(getStorage() == StorageTypes.InternalStorage){
                             cfc.copyFile.run();
                         }
@@ -68,7 +69,7 @@ public class MoveActionMenu extends ActionMenu {
                                 mFragment.getString(R.string.moving_folder),
                                 mFragment.getString(R.string.moving_in_progress), mFragment.getActivity());
                         FileActionsHelper.copyFolderClass cfc = fa.new copyFolderClass(
-                                new File(initFilePath), FileFoldersLab.get(mFragment.getActivity()).getCurPath(), mFragment.getActivity());
+                                new File(initFilePath), FileFoldersLab.get(mFragment.getActivity()).getCurPath(), mFragment.getActivity(), true);
                         if(getStorage() == StorageTypes.InternalStorage){
                             cfc.copyFolder.run();
                         }
@@ -78,10 +79,10 @@ public class MoveActionMenu extends ActionMenu {
                             }
                         }
                     }
-                    if(initFilePath.startsWith(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath()))
+                    /*if(initFilePath.startsWith(FileFoldersLab.get(mFragment.getActivity()).getSDCardPath()))
                         FileFoldersLab.removeFileSD(initFilePath);
                     else
-                        FileFoldersLab.removeFile(initFilePath);
+                        FileFoldersLab.removeFile(initFilePath);*/
 
                     mFragment.updateUI(false);
 

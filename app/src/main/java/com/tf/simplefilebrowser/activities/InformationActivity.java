@@ -15,7 +15,7 @@ public class InformationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_information);
-        getSupportActionBar().setTitle("About app");
+        getSupportActionBar().setTitle(R.string.activity_information_title);
         TextView mVkLinkView = findViewById(R.id.vk_link);
         mVkLinkView.setOnClickListener(new View.OnClickListener() {
             @Override

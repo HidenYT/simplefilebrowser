@@ -41,6 +41,7 @@ public class FileActionsHelper {
         mContentResolver = contentResolver;
     }
     public class copyFileClass{
+        private boolean deleteOnFinish = false;
         File src;
         String destPath;
         Activity mActivity;
@@ -48,6 +49,12 @@ public class FileActionsHelper {
             this.src = src;
             this.destPath = destPath;
             mActivity = activity;
+        }
+        public copyFileClass(File src, String destPath, Activity activity, boolean deleteOnFinish){
+            this.src = src;
+            this.destPath = destPath;
+            mActivity = activity;
+            this.deleteOnFinish = deleteOnFinish;
         }
         public final Runnable copyFile = new Runnable() {
             @Override
@@ -72,6 +79,9 @@ public class FileActionsHelper {
                                     mOptionFiles = optionsFiles.Rewrite;
                                 }
                                 writeFile(src, f);
+                                if(deleteOnFinish){
+                                    checkAndDeleteFile(src, mActivity);
+                                }
                             }
                         });
                         builder.setNegativeButton(mActivity.getString(R.string.DIALOG_NO), new DialogInterface.OnClickListener() {
@@ -103,9 +113,15 @@ public class FileActionsHelper {
                         }
                     }else if(mOptionFiles == optionsFiles.Rewrite){
                         writeFile(src, f);
+                        if(deleteOnFinish){
+                            checkAndDeleteFile(src, mActivity);
+                        }
                     }
                 }else{
                     writeFile(src, f);
+                    if(deleteOnFinish){
+                        checkAndDeleteFile(src, mActivity);
+                    }
                 }
             }
         };
@@ -134,6 +150,9 @@ public class FileActionsHelper {
                                     mOptionFiles = optionsFiles.Rewrite;
                                 }
                                 writeFile(src, doc);
+                                if(deleteOnFinish){
+                                    checkAndDeleteFile(src, mActivity);
+                                }
                             }
                         });
                         builder.setNegativeButton(mActivity.getString(R.string.DIALOG_NO), new DialogInterface.OnClickListener() {
@@ -165,6 +184,9 @@ public class FileActionsHelper {
                         }
                     }else if(mOptionFiles == optionsFiles.Rewrite){
                         writeFile(src, doc);
+                        if(deleteOnFinish){
+                            checkAndDeleteFile(src, mActivity);
+                        }
                     }
                 }else{
                     final DocumentFile doc = StorageHelper.get(mActivity).getDocumentFile(f);
@@ -173,6 +195,9 @@ public class FileActionsHelper {
                     final DocumentFile doc1 = doc.createFile(type, f.getName());
                     Log.d(TAG, "run: " + doc1.getUri());
                     writeFile(src, doc1);
+                    if(deleteOnFinish){
+                        checkAndDeleteFile(src, mActivity);
+                    }
                 }
 
             }
@@ -180,6 +205,7 @@ public class FileActionsHelper {
     }
 
     public class copyFolderClass{
+        private boolean deleteOnFinish;
         File src;
         String destPath;
         Activity mActivity;
@@ -188,6 +214,12 @@ public class FileActionsHelper {
             this.src = src;
             this.destPath = destPath;
             mActivity = activity;
+        }
+        public copyFolderClass(File src, String destPath, Activity activity, boolean deleteOnFinish){
+            this.src = src;
+            this.destPath = destPath;
+            mActivity = activity;
+            this.deleteOnFinish = deleteOnFinish;
         }
         public final Runnable copyFolder = new Runnable() {
             @Override
@@ -253,9 +285,15 @@ public class FileActionsHelper {
                                 return;
                             }
                             makeFolder(src, f, mActivity);
+                            if(deleteOnFinish){
+                                checkAndDeleteFile(src, mActivity);
+                            }
                         }
                     }else if(mOptionFolders == optionsFolders.Merge){
                         makeFolder(src, f, mActivity);
+                        if(deleteOnFinish){
+                            checkAndDeleteFile(src, mActivity);
+                        }
                     }
                 }else{
                     if(Thread.currentThread().isInterrupted()){
@@ -269,6 +307,9 @@ public class FileActionsHelper {
                         return;
                     }
                     makeFolder(src, f, mActivity);
+                    if(deleteOnFinish){
+                        checkAndDeleteFile(src, mActivity);
+                    }
                 }
             }
         };
@@ -338,9 +379,15 @@ public class FileActionsHelper {
                                 return;
                             }
                             makeFolder(src, f, doc, mActivity);
+                            if(deleteOnFinish){
+                                checkAndDeleteFile(src, mActivity);
+                            }
                         }
                     }else if(mOptionFolders == optionsFolders.Merge){
                         makeFolder(src, f, doc, mActivity);
+                        if(deleteOnFinish){
+                            checkAndDeleteFile(src, mActivity);
+                        }
                     }
                 }else{
                     if(Thread.currentThread().isInterrupted()){
@@ -356,6 +403,9 @@ public class FileActionsHelper {
                     final DocumentFile doc = StorageHelper.get(mActivity).getDocumentFile(f);
 
                     makeFolder(src, f, doc, mActivity);
+                    if(deleteOnFinish){
+                        checkAndDeleteFile(src, mActivity);
+                    }
                 }
             }
         };
@@ -428,6 +478,14 @@ public class FileActionsHelper {
             }else{
                 new copyFileClass(file, destFile.getAbsolutePath(), activity).copyFileToSD.run();
             }
+        }
+    }
+    private void checkAndDeleteFile(File file, Activity activity){
+        String path = file.getAbsolutePath();
+        if (path.startsWith(FileFoldersLab.get(activity).getSDCardPath())){
+            FileFoldersLab.removeFileSD(path);
+        }else if(path.startsWith(FileFoldersLab.get(activity).getINTERNAL_STORAGE_PATH())){
+            FileFoldersLab.removeFile(path);
         }
     }
 }

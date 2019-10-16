@@ -4,8 +4,6 @@
     package="com.tf.simplefilebrowser">
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission-sdk-23 android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,9 +11,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-
-        android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning">
+        android:testOnly="false"
+        android:theme="@style/AppTheme">
         <activity android:name=".activities.FileExplorerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,15 +33,15 @@
 
         </activity>
         <activity android:name=".activities.SettingsActivity"/>
-        <provider
-            android:authorities="com.tf.simplefilebrowser.provider"
-            android:name="android.support.v4.content.FileProvider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
-        </provider>
+<!--        <provider-->
+<!--            android:authorities="com.tf.simplefilebrowser.provider"-->
+<!--            android:name="android.support.v4.content.FileProvider"-->
+<!--            android:exported="false"-->
+<!--            android:grantUriPermissions="true">-->
+<!--            <meta-data-->
+<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                android:resource="@xml/provider_paths"/>-->
+<!--        </provider>-->
         <receiver android:name=".helpers.NotificationsLab$notificationReceiver"/>
     </application>
 

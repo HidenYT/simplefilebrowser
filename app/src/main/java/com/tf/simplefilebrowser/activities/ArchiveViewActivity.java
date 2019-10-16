@@ -101,7 +101,7 @@ public class ArchiveViewActivity extends Activity {
         selection = new ZipFileSelection(this);
         mToolbar = findViewById(R.id.toolbar);
         setActionBar(mToolbar);
-        getActionBar().setTitle("Archive preview");
+        getActionBar().setTitle(R.string.activity_zip_archive_preview_title);
         overridePendingTransition(0,0);
         try {
             entries = ZipArchiveHelper.get(this, getContentResolver()).getAllEntries(archive.getAbsolutePath());
